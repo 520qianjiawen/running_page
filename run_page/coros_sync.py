@@ -155,12 +155,16 @@ async def gather_with_concurrency(n, tasks):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("account", nargs="?", help="input coros account")
-
     parser.add_argument("password", nargs="?", help="input coros password")
     options = parser.parse_args()
 
-    account = options.account
-    password = options.password
-    encrypted_pwd = hashlib.md5(password.encode()).hexdigest()
+    account = options.account or os.getenv("COROS_ACCOUNT")
+    password = options.password or os.getenv("COROS_PASSWORD")
 
+    if not account or not password:
+        raise SystemExit(
+            "Missing Coros credentials. Set COROS_ACCOUNT and COROS_PASSWORD in environment variables or pass them as CLI args."
+        )
+
+    encrypted_pwd = hashlib.md5(password.encode()).hexdigest()
     asyncio.run(download_and_generate(account, encrypted_pwd))
