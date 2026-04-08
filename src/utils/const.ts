@@ -1,9 +1,8 @@
 // const
 const MAPBOX_TOKEN =
-  // For security reasons, use environment variable for production
-  // Set VITE_MAPBOX_TOKEN in your Vercel project settings
-  import.meta.env.VITE_MAPBOX_TOKEN ||
-  'pk.eyJ1IjoiY2F2b241MjUiLCJhIjoiY21ucTBpYTVrMDJqeTJ3cXBoajFpNWs1biJ9.TzQpxBfIfTfjYBQ2LAc0HQ';
+  // For security reasons, use environment variable for production.
+  // Set VITE_MAPBOX_TOKEN in your Vercel project settings.
+  import.meta.env.VITE_MAPBOX_TOKEN || '';
 const MUNICIPALITY_CITIES_ARR = [
   '北京市',
   '上海市',

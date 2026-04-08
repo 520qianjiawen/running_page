@@ -22,5 +22,8 @@ config.yaml
 .venv/
 .pdm-python
 
+.env
+.env.*
+
 route.png
 route.svg
