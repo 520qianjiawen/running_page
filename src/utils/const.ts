@@ -1,9 +1,9 @@
 // const
 const MAPBOX_TOKEN =
-  // For security reasons, please avoid using the default public token provided by Mapbox as much as possible.
-  // Instead, manually add a new token and apply URL restrictions.
-  // (please refer to https://github.com/yihong0618/running_page/issues/643#issuecomment-2042668580)
-  'pk.eyJ1IjoieWlob25nMDYxOCIsImEiOiJja2J3M28xbG4wYzl0MzJxZm0ya2Fua2p2In0.PNKfkeQwYuyGOTT_x9BJ4Q';
+  // For security reasons, use environment variable for production
+  // Set VITE_MAPBOX_TOKEN in your Vercel project settings
+  import.meta.env.VITE_MAPBOX_TOKEN ||
+  'pk.eyJ1IjoiY2F2b241MjUiLCJhIjoiY21ucTBpYTVrMDJqeTJ3cXBoajFpNWs1biJ9.TzQpxBfIfTfjYBQ2LAc0HQ';
 const MUNICIPALITY_CITIES_ARR = [
   '北京市',
   '上海市',
@@ -148,19 +148,26 @@ export {
   ACTIVITY_TOTAL
 };
 
-const nike = 'rgb(224,237,94)'; // if you want change the main color change here src/styles/variables.scss
-const dark_vanilla = 'rgb(228,212,220)';
-
+const nike = '#FF6B9D'; // Modern vibrant pink
 // If your map has an offset please change this line
 // issues #92 and #198
 export const NEED_FIX_MAP = false;
 export const MAIN_COLOR = nike;
-export const PROVINCE_FILL_COLOR = '#47b8e0';
-export const COUNTRY_FILL_COLOR = dark_vanilla;
 
-export const RUN_COLOR = MAIN_COLOR;
-export const RUN_TRAIL_COLOR = 'rgb(255,153,51)';
-export const CYCLING_COLOR = 'rgb(51,255,87)';
-export const HIKING_COLOR = 'rgb(151,51,255)';
-export const WALKING_COLOR = HIKING_COLOR;
-export const SWIMMING_COLOR = 'rgb(255,51,51)';
+// Modern vibrant color scheme for map styling
+export const PROVINCE_FILL_COLOR = '#FF6B6B'; // Vibrant red
+export const COUNTRY_FILL_COLOR = '#4ECDC4'; // Teal
+
+// Activity type colors with modern vibrancy
+export const RUN_COLOR = '#FF6B9D'; // Vibrant pink
+export const RUN_TRAIL_COLOR = '#C44569'; // Deep coral
+export const CYCLING_COLOR = '#00D9FF'; // Cyan
+export const HIKING_COLOR = '#A0FF00'; // Lime
+export const WALKING_COLOR = '#FF9500'; // Orange
+export const SWIMMING_COLOR = '#FF006E'; // Hot pink
+
+// Additional colors for animations and effects
+export const GLOW_COLOR_PRIMARY = '#FF6B9D';
+export const GLOW_COLOR_SECONDARY = '#00D9FF';
+export const GRADIENT_START = '#FF6B9D';
+export const GRADIENT_END = '#A0FF00';

@@ -362,7 +362,7 @@ const getBoundsForGeoData = (
   }).fitBounds(cornersLongLat, { padding: 200 });
   let { longitude, latitude, zoom } = viewState;
   if (features.length > 1) {
-    zoom = 11.5;
+    zoom = 12.5; // 增加 zoom 让路线显示更大
   }
   return { longitude, latitude, zoom };
 };

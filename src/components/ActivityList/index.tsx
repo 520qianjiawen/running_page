@@ -128,9 +128,9 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ period, summary, dailyDista
                                 <Tooltip
                                     formatter={(value) => `${value} km`}
                                     contentStyle={{ backgroundColor: 'rgb(36, 36, 36)', border: '1px solid #444', color: 'rgb(204, 204, 204)' }}
-                                    labelStyle={{ color: 'rgb(224, 237, 94)' }}
+                                    labelStyle={{ color: '#FF6B9D' }}
                                 />
-                                <Bar dataKey="distance" fill="rgb(224, 237, 94)" />
+                                <Bar dataKey="distance" fill="#FF6B9D" />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>

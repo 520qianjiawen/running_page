@@ -145,7 +145,7 @@ const RunMap = ({
       {...viewState}
       onMove={onMove}
       style={style}
-      mapStyle="mapbox://styles/mapbox/dark-v10"
+      mapStyle="mapbox://styles/mapbox/outdoors-v12"
       ref={mapRefCallback}
       mapboxAccessToken={MAPBOX_TOKEN}
     >
@@ -156,6 +156,7 @@ const RunMap = ({
           type="fill"
           paint={{
             'fill-color': PROVINCE_FILL_COLOR,
+            'fill-opacity': 0.7,
           }}
           filter={filterProvinces}
         />
@@ -165,19 +166,35 @@ const RunMap = ({
           paint={{
             'fill-color': COUNTRY_FILL_COLOR,
             // in China, fill a bit lighter while already filled provinces
-            'fill-opacity': ["case", ["==", ["get", "name"], '中国'], 0.1, 0.5],
+            'fill-opacity': ["case", ["==", ["get", "name"], '中国'], 0.15, 0.35],
           }}
           filter={filterCountries}
         />
+        {/* Glow effect layer for runs - creates neon glow */}
+        <Layer
+          id="runs-glow"
+          type="line"
+          paint={{
+            'line-color': ['get', 'color'],
+            'line-width': isBigMap && lights ? 4 : 6,
+            'line-blur': 8,
+            'line-opacity': isSingleRun || isBigMap || !lights ? 0.3 : 0.2,
+          }}
+          layout={{
+            'line-join': 'round',
+            'line-cap': 'round',
+          }}
+        />
+        {/* Main line layer with enhanced visuals */}
         <Layer
           id="runs2"
           type="line"
           paint={{
-            'line-color':  ['get', 'color'],
-            'line-width': isBigMap && lights ? 1 : 2,
+            'line-color': ['get', 'color'],
+            'line-width': isBigMap && lights ? 1.5 : 2.5,
             'line-dasharray': dash,
             'line-opacity': isSingleRun || isBigMap || !lights ? 1 : LINE_OPACITY,
-            'line-blur': 1,
+            'line-blur': 0.5,
           }}
           layout={{
             'line-join': 'round',

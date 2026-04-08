@@ -26,3 +26,26 @@ hr {
   border-color: #0003;
   margin: 2rem 0;
 }
+
+/* Modern animation effects */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Glow effect for highlights */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(255, 107, 157, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 107, 157, 0.8), 0 0 30px rgba(0, 217, 255, 0.4);
+  }
+}

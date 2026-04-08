@@ -664,3 +664,116 @@ a.mapboxgl-ctrl-logo.mapboxgl-compact {
   .mapboxgl-canvas {
   touch-action: pan-x pan-y;
 }
+
+/* ==================== Enhanced Map Styling ==================== */
+
+/* Improve control button styling with modern effects */
+.mapboxgl-ctrl-group button:not(:disabled):hover {
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.15), rgba(0, 217, 255, 0.15));
+  box-shadow: 0 0 10px rgba(255, 107, 157, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mapboxgl-ctrl-group button:focus {
+  box-shadow: 0 0 15px rgba(255, 107, 157, 0.5), 0 0 25px rgba(0, 217, 255, 0.3);
+}
+
+/* Enhanced control group styling */
+.mapboxgl-ctrl-group {
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 20px rgba(255, 107, 157, 0.2);
+  border: 1px solid rgba(255, 107, 157, 0.2);
+  overflow: hidden;
+}
+
+.mapboxgl-ctrl-group:not(:empty) {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 20px rgba(255, 107, 157, 0.2);
+}
+
+/* Improve popup styling */
+.mapboxgl-popup-content {
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 20px rgba(255, 107, 157, 0.15);
+  border: 1px solid rgba(255, 107, 157, 0.2);
+  backdrop-filter: blur(10px);
+  font-size: 13px;
+  line-height: 1.5;
+  color: #333;
+}
+
+/* Navigation controls enhancement */
+.mapboxgl-ctrl-fullscreen .mapboxgl-ctrl-icon,
+.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.1));
+}
+
+/* Compass animation */
+@keyframes compass-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mapboxgl-ctrl-compass:active {
+  animation: compass-rotate 0.6s ease-in-out;
+}
+
+/* Attribution control styling */
+.mapboxgl-ctrl-attrib {
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 4px 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mapboxgl-ctrl-attrib a {
+  color: #FF6B9D;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.mapboxgl-ctrl-attrib a:hover {
+  color: #00D9FF;
+  text-decoration: underline;
+  text-shadow: 0 0 8px rgba(0, 217, 255, 0.3);
+}
+
+/* Scale control styling */
+.mapboxgl-ctrl-scale {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-color: #FF6B9D;
+  border-radius: 4px;
+  color: #FF6B9D;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Geolocate button enhancement */
+.mapboxgl-ctrl-geolocate.mapboxgl-ctrl-geolocate-active .mapboxgl-ctrl-icon {
+  filter: drop-shadow(0 0 8px rgba(0, 217, 255, 0.6));
+}
+
+/* Smooth transitions for all interactive elements */
+.mapboxgl-ctrl button,
+.mapboxgl-ctrl-attrib-button {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Enhanced marker styling if present */
+.mapboxgl-marker {
+  transition: all 0.3s ease;
+}
+
+.mapboxgl-marker:hover {
+  filter: drop-shadow(0 0 12px rgba(255, 107, 157, 0.6));
+  transform: scale(1.15);
+}

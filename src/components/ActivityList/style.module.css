@@ -1,7 +1,7 @@
 .activityList {
   padding: 20px;
   background-color: rgb(26, 26, 26);
-  color: rgb(224, 237, 94);
+  color: #FF6B9D;
 }
 
 .filterContainer {
@@ -45,7 +45,7 @@
 .activityName {
   font-size: 1.5em;
   margin-bottom: 10px;
-  color: rgb(224, 237, 94);
+  color: #FF6B9D;
 }
 
 .activityDetails p {
@@ -54,7 +54,7 @@
 }
 
 .activityDetails strong {
-  color: rgb(224, 237, 94);
+  color: #FF6B9D;
 }
 
 .chart {
@@ -69,8 +69,8 @@
 
 .smallHomeButton {
     padding: 4px 12px;
-    background-color: rgb(224, 237, 94);
-    color: #000;
+    background-color: #FF6B9D;
+    color: #fff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -86,4 +86,71 @@
 .lifeContainer {
   display: flex;
   justify-content: center;
+}
+
+/* 移动端响应式设计 */
+@media (max-width: 768px) {
+  .activityList {
+    padding: 12px;
+  }
+
+  .summaryContainer {
+    gap: 12px;
+  }
+
+  .activityCard {
+    width: calc(50% - 6px);
+    padding: 12px;
+  }
+
+  .activityName {
+    font-size: 1.2em;
+  }
+
+  .activityDetails p {
+    font-size: 0.9em;
+    margin: 6px 0;
+  }
+
+  .chart {
+    height: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .activityList {
+    padding: 8px;
+  }
+
+  .summaryContainer {
+    gap: 8px;
+  }
+
+  .activityCard {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .activityName {
+    font-size: 1em;
+  }
+
+  .activityDetails p {
+    font-size: 0.85em;
+    margin: 4px 0;
+  }
+
+  .chart {
+    height: 60px;
+  }
+
+  .filterContainer {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .filterContainer select {
+    flex: 1;
+    min-width: 100px;
+  }
 }
