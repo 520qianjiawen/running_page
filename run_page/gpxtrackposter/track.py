@@ -56,6 +56,7 @@ class Track:
         self.type = "Run"
         self.subtype = None  # for fit file
         self.device = ""
+        self.best_1k = None
 
     def load_gpx(self, file_name):
         """
@@ -285,6 +286,7 @@ class Track:
             if message["enhanced_avg_speed"]
             else message["avg_speed"]
         )
+        self.best_1k = self._best_1k_seconds(fit.get("record_mesgs") or [])
         for record in fit["record_mesgs"]:
             if "position_lat" in record and "position_long" in record:
                 lat = record["position_lat"] / SEMICIRCLE
@@ -354,6 +356,32 @@ class Track:
             ),
         }
 
+    @staticmethod
+    def _best_1k_seconds(records):
+        samples = []
+        for record in records:
+            distance = record.get("distance")
+            timestamp = record.get("timestamp")
+            if distance is None or timestamp is None:
+                continue
+            if hasattr(timestamp, "timestamp"):
+                seconds = timestamp.timestamp()
+            else:
+                seconds = float(timestamp)
+            samples.append((seconds, float(distance)))
+        if len(samples) < 2:
+            return None
+        samples.sort()
+        best = None
+        left = 0
+        for right in range(len(samples)):
+            while left < right and samples[right][1] - samples[left][1] >= 1000:
+                duration = samples[right][0] - samples[left][0]
+                if duration > 0 and (best is None or duration < best):
+                    best = duration
+                left += 1
+        return best
+
     def to_namedtuple(self, run_from="gpx"):
         d = {
             "id": self.run_id,
@@ -371,6 +399,7 @@ class Track:
             "elevation_gain": (int(self.elevation_gain) if self.elevation_gain else 0),
             "map": run_map(self.polyline_str),
             "start_latlng": self.start_latlng,
+            "best_1k": self.best_1k,
         }
         d.update(self.moving_dict)
         # return a nametuple that can use . to get attr

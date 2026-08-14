@@ -45,6 +45,7 @@ ACTIVITY_KEYS = [
     "average_heartrate",
     "average_speed",
     "elevation_gain",
+    "best_1k",
 ]
 
 
@@ -65,6 +66,7 @@ class Activity(Base):
     average_heartrate = Column(Float)
     average_speed = Column(Float)
     elevation_gain = Column(Float)
+    best_1k = Column(Float)
     streak = None
 
     def to_dict(self):
@@ -132,6 +134,7 @@ def update_or_create_activity(session, run_activity):
                 summary_polyline=(
                     run_activity.map and run_activity.map.summary_polyline or ""
                 ),
+                best_1k=getattr(run_activity, "best_1k", None),
             )
             session.add(activity)
             created = True
@@ -152,6 +155,8 @@ def update_or_create_activity(session, run_activity):
             activity.summary_polyline = (
                 run_activity.map and run_activity.map.summary_polyline or ""
             )
+            if getattr(run_activity, "best_1k", None) is not None:
+                activity.best_1k = float(run_activity.best_1k)
     except Exception as e:
         print(f"something wrong with {run_activity.id}")
         print(str(e))

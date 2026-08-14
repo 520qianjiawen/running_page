@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toBlob } from 'html-to-image';
 import Map, { Layer, MapRef, Source } from 'react-map-gl';
 import RunMarker from '@/components/RunMap/RunMarker';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
@@ -7,9 +8,11 @@ import {
   Activity,
   Coordinate,
   formatPace,
+  coordinateForRun,
   formatRunPlace,
   geoJsonForRuns,
 } from '@/utils/utils';
+import { fetchRunTemperature } from '@/utils/weather';
 import styles from './style.module.css';
 import '@/components/RunMap/mapbox.css';
 
@@ -42,6 +45,10 @@ const movingSeconds = (movingTime: string): number => {
 
 const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
   const { siteTitle, siteUrl } = useSiteMetadata();
+  const [temperature, setTemperature] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveHint, setSaveHint] = useState('保存后可选存到相册');
+  const posterRef = useRef<HTMLElement>(null);
 
   const stats = useMemo(() => {
     const sorted = [...runs].sort((a, b) =>
@@ -58,6 +65,9 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
       0
     );
     const start = sorted[0]?.start_date_local.slice(11, 16) || '';
+    const best1k = sorted
+      .map((run) => run.best_1k)
+      .filter((value): value is number => typeof value === 'number' && value > 0);
     const km = distance / 1000;
     const weekday = weekdayNames[new Date(`${date}T12:00:00`).getDay()];
     const prettyDate = date.replace(/-/g, '.');
@@ -79,6 +89,33 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
       weekday,
       prettyDate,
       kcal: Math.round(km * 65),
+      best1k: best1k.length ? Math.min(...best1k) : 0,
+    };
+  }, [date, runs]);
+
+  useEffect(() => {
+    const first = [...runs].sort((a, b) =>
+      a.start_date_local.localeCompare(b.start_date_local)
+    )[0];
+    const point = first ? coordinateForRun(first) : null;
+    if (!point) {
+      return;
+    }
+    const hour = Number((first.start_date_local || '').slice(11, 13));
+    let cancelled = false;
+    fetchRunTemperature(point.lat, point.lon, date, Number.isFinite(hour) ? hour : 19)
+      .then((value) => {
+        if (!cancelled) {
+          setTemperature(value);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setTemperature(null);
+        }
+      });
+    return () => {
+      cancelled = true;
     };
   }, [date, runs]);
 
@@ -133,6 +170,74 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
   );
   const mapRef = useRef<MapRef>(null);
 
+  const savePoster = useCallback(
+    async (event: React.MouseEvent) => {
+      event.stopPropagation();
+      const poster = posterRef.current;
+      if (!poster || saving) {
+        return;
+      }
+      setSaving(true);
+      setSaveHint('正在生成图片…');
+      const mapWrap = poster.querySelector('[data-map-wrap]') as HTMLElement | null;
+      const map = mapRef.current?.getMap?.();
+      let overlay: HTMLImageElement | null = null;
+      try {
+        if (map && mapWrap) {
+          overlay = document.createElement('img');
+          overlay.src = map.getCanvas().toDataURL('image/png');
+          overlay.alt = '';
+          overlay.style.cssText =
+            'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:6;';
+          mapWrap.appendChild(overlay);
+          if (!overlay.complete) {
+            await new Promise<void>((resolve, reject) => {
+              overlay!.onload = () => resolve();
+              overlay!.onerror = () => reject(new Error('map snapshot failed'));
+            });
+          }
+        }
+        const blob = await toBlob(poster, {
+          pixelRatio: Math.min(window.devicePixelRatio || 2, 3),
+          cacheBust: true,
+          backgroundColor: '#101217',
+        });
+        if (!blob) {
+          throw new Error('empty image');
+        }
+        const file = new File([blob], `大猫跑步-${date}.png`, { type: 'image/png' });
+        const nav = navigator as Navigator & {
+          canShare?: (data: ShareData) => boolean;
+        };
+        if (nav.share && nav.canShare?.({ files: [file] })) {
+          await nav.share({
+            files: [file],
+            title: `${siteTitle} ${date}`,
+          });
+          setSaveHint('已打开分享，点“存储图像”就能进相册');
+        } else {
+          const link = document.createElement('a');
+          const url = URL.createObjectURL(blob);
+          link.href = url;
+          link.download = file.name;
+          link.click();
+          URL.revokeObjectURL(url);
+          setSaveHint('图片已下载，可保存到相册');
+        }
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') {
+          setSaveHint('已取消');
+        } else {
+          setSaveHint('保存失败，请再试一次');
+        }
+      } finally {
+        overlay?.remove();
+        setSaving(false);
+      }
+    },
+    [date, saving, siteTitle]
+  );
+
   const fitRoute = useCallback(() => {
     const map = mapRef.current?.getMap?.();
     if (!map || !routeBounds) {
@@ -169,6 +274,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
         关闭
       </button>
       <article
+        ref={posterRef}
         className={styles.poster}
         onClick={(event) => event.stopPropagation()}
       >
@@ -177,12 +283,19 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
           <span className={styles.date}>
             {stats.prettyDate} {stats.weekday}
           </span>
-          {stats.location && (
-            <span className={styles.place}>{stats.location}</span>
+          {(stats.location || temperature !== null) && (
+            <span className={styles.place}>
+              {[
+                stats.location,
+                temperature !== null ? `${Math.round(temperature)}°C` : '',
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
           )}
         </header>
 
-        <div className={styles.mapWrap}>
+        <div className={styles.mapWrap} data-map-wrap>
           {hasRoute ? (
             <Map
               ref={mapRef}
@@ -200,6 +313,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
               onLoad={fitRoute}
               mapStyle="mapbox://styles/mapbox/dark-v11"
               mapboxAccessToken={MAPBOX_TOKEN}
+              preserveDrawingBuffer
               attributionControl={false}
               dragPan={false}
               scrollZoom={false}
@@ -260,22 +374,28 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
             <b>{stats.start || '--'}</b>
           </div>
           <div>
-            <em>热量</em>
-            <b>{stats.kcal ? `${stats.kcal}` : '--'}</b>
+            <em>气温</em>
+            <b>{temperature !== null ? `${Math.round(temperature)}°` : '--'}</b>
           </div>
           <div>
-            <em>{stats.elevation > 0 ? '爬升' : '次数'}</em>
-            <b>
-              {stats.elevation > 0
-                ? `${Math.round(stats.elevation)}`
-                : `${stats.count}`}
-            </b>
+            <em>最快1公里</em>
+            <b>{stats.best1k ? formatPace(1000 / stats.best1k) : '--'}</b>
           </div>
         </div>
 
         <footer className={styles.footer}>{siteUrl.replace(/^https?:\/\//, '')}</footer>
       </article>
-      <p className={styles.hint}>截图这张卡片，就可以发朋友圈或小红书</p>
+      <div className={styles.actions} onClick={(event) => event.stopPropagation()}>
+        <button
+          className={styles.share}
+          type="button"
+          onClick={savePoster}
+          disabled={saving}
+        >
+          {saving ? '生成中…' : '保存到相册'}
+        </button>
+        <p className={styles.hint}>{saveHint}</p>
+      </div>
     </div>
   );
 };

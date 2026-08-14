@@ -131,6 +131,30 @@
   letter-spacing: 0.04em;
 }
 
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.share {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.7rem 1.6rem;
+  background: #ff6b9d;
+  color: #1a0d12;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.share:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .hint {
   margin: 0;
   color: #8d8b86;

@@ -26,6 +26,7 @@ export interface Activity {
   elevation_gain: number | null;
   average_speed: number;
   streak: number;
+  best_1k?: number | null;
 }
 
 const titleForShow = (run: Activity): string => {
@@ -442,6 +443,29 @@ const placeFromCoordinate = (lat: number, lon: number): string => {
   return '';
 };
 
+const coordinateForRun = (run: {
+  location_country?: string | null;
+  summary_polyline?: string | null;
+}): { lat: number; lon: number } | null => {
+  const raw = run.location_country || '';
+  const lat = keepNumberField(raw, 'latitude');
+  const lon = keepNumberField(raw, 'longitude');
+  if (Number.isFinite(lat) && Number.isFinite(lon) && lat !== 0 && lon !== 0) {
+    return { lat, lon };
+  }
+  if (run.summary_polyline) {
+    try {
+      const points = mapboxPolyline.decode(run.summary_polyline);
+      if (points.length) {
+        return { lat: points[0][0], lon: points[0][1] };
+      }
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
 const formatRunPlace = (run: {
   run_id?: number;
   location_country?: string | null;
@@ -506,4 +530,5 @@ export {
   formatRunTime,
   convertMovingTime2Sec,
   formatRunPlace,
+  coordinateForRun,
 };
