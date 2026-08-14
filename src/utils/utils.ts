@@ -406,6 +406,77 @@ const sortDateFunc = (a: Activity, b: Activity) => {
 };
 const sortDateFuncReverse = (a: Activity, b: Activity) => sortDateFunc(b, a);
 
+const keepLocationField = (raw: string, key: string): string => {
+  const matched = raw.match(new RegExp(`'${key}': (None|'([^']*)')`));
+  if (!matched || matched[1] === 'None') {
+    return '';
+  }
+  return matched[2] || '';
+};
+
+const keepNumberField = (raw: string, key: string): number => {
+  const matched = raw.match(new RegExp(`'${key}': ([-]?\\d+(?:\\.\\d+)?)`));
+  return matched ? Number(matched[1]) : NaN;
+};
+
+const stripAdminSuffix = (name: string): string =>
+  name.replace(/(特别行政区|自治州|地区|省|市|区|县)$/u, '');
+
+const placeFromCoordinate = (lat: number, lon: number): string => {
+  // Usual Zhangjiagang / Suzhou-north routes for this athlete.
+  if (Math.abs(lat - 31.79) < 0.22 && Math.abs(lon - 120.63) < 0.28) {
+    return '张家港，苏州';
+  }
+  if (Math.abs(lat - 31.57) < 0.18 && Math.abs(lon - 120.3) < 0.22) {
+    return '滨湖，无锡';
+  }
+  return '';
+};
+
+const formatRunPlace = (run: {
+  run_id?: number;
+  location_country?: string | null;
+  summary_polyline?: string | null;
+}): string => {
+  const raw = run.location_country || '';
+  let district = '';
+  let city = '';
+
+  if (raw.includes("'city':") || raw.includes("'district':")) {
+    district = keepLocationField(raw, 'district');
+    city = keepLocationField(raw, 'city');
+  }
+
+  if (!city) {
+    const parsed = locationForRun(run as Activity);
+    city = parsed.city;
+  }
+
+  if (!district && !city) {
+    const lat = keepNumberField(raw, 'latitude');
+    const lon = keepNumberField(raw, 'longitude');
+    if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      return placeFromCoordinate(lat, lon);
+    }
+    if (run.summary_polyline) {
+      try {
+        const points = mapboxPolyline.decode(run.summary_polyline);
+        if (points.length) {
+          return placeFromCoordinate(points[0][0], points[0][1]);
+        }
+      } catch {
+        return '';
+      }
+    }
+  }
+
+  const parts = [district, city]
+    .filter(Boolean)
+    .map(stripAdminSuffix)
+    .filter((name, index, arr) => arr.indexOf(name) === index);
+  return parts.join('，');
+};
+
 export {
   titleForShow,
   formatPace,
@@ -425,4 +496,5 @@ export {
   getBoundsForGeoData,
   formatRunTime,
   convertMovingTime2Sec,
+  formatRunPlace,
 };

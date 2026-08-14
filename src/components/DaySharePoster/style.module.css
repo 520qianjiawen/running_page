@@ -1,0 +1,148 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(6, 7, 9, 0.78);
+  backdrop-filter: blur(10px);
+}
+
+.close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  background: rgba(244, 241, 234, 0.08);
+  color: #c8c6c0;
+  font-family: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.poster {
+  width: min(390px, calc(100vw - 24px));
+  aspect-ratio: 9 / 16;
+  max-height: calc(100dvh - 88px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 28px;
+  background: #101217;
+  border: 1px solid rgba(244, 241, 234, 0.1);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  color: #f4f1ea;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 18px 10px;
+}
+
+.brand {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ff6b9d;
+}
+
+.date {
+  font-size: 1.15rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.place {
+  color: #8d8b86;
+  font-size: 0.82rem;
+}
+
+.mapWrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 14px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #16181e;
+}
+
+.mapEmpty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8d8b86;
+  font-size: 0.9rem;
+}
+
+.heroStat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 14px 20px 4px;
+}
+
+.heroStat strong {
+  font-size: 3.1rem;
+  line-height: 0.9;
+  font-weight: 500;
+}
+
+.heroStat span {
+  color: #8d8b86;
+  font-size: 0.95rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px 8px;
+  padding: 10px 18px 8px;
+}
+
+.grid em {
+  display: block;
+  font-style: normal;
+  color: #8d8b86;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+}
+
+.grid b {
+  display: block;
+  margin-top: 2px;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.footer {
+  padding: 8px 18px 14px;
+  color: #6f6d68;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.hint {
+  margin: 0;
+  color: #8d8b86;
+  font-size: 0.78rem;
+}
+
+@media (max-height: 700px) {
+  .heroStat strong {
+    font-size: 2.4rem;
+  }
+
+  .grid b {
+    font-size: 0.95rem;
+  }
+}

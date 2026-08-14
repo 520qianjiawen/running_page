@@ -82,12 +82,14 @@ const MAX_DISTANCE_TITLE = IS_CHINESE ? '最远距离' : 'Max Distance';
 const MAX_SPEED_TITLE = IS_CHINESE ? '最快速度' : 'Max Speed';
 const TOTAL_TIME_TITLE = IS_CHINESE ? '总时间' : 'Total Time';
 const AVERAGE_SPEED_TITLE = IS_CHINESE ? '平均速度' : 'Average Speed';
+const AVERAGE_PACE_TITLE = IS_CHINESE ? '平均配速' : 'Average Pace';
+const AVERAGE_HEART_RATE_TITLE = IS_CHINESE ? '平均心率' : 'Average Heart Rate';
 const TOTAL_DISTANCE_TITLE = IS_CHINESE ? '总距离' : 'Total Distance';
 const YEARLY_TITLE = IS_CHINESE ? 'Year' : 'Yearly';
 const MONTHLY_TITLE = IS_CHINESE ? 'Month' : 'Monthly';
 const WEEKLY_TITLE = IS_CHINESE ? 'Week' : 'Weekly';
 const DAILY_TITLE = IS_CHINESE ? 'Day' : 'Daily';
-const LOCATION_TITLE = IS_CHINESE ? 'Location' : 'Location';
+const LOCATION_TITLE = IS_CHINESE ? '地点' : 'Location';
 
 const ACTIVITY_TYPES = {
   RUN_GENERIC_TITLE,
@@ -114,6 +116,8 @@ const ACTIVITY_TOTAL = {
     MAX_SPEED_TITLE,
     TOTAL_TIME_TITLE,
     AVERAGE_SPEED_TITLE,
+    AVERAGE_PACE_TITLE,
+    AVERAGE_HEART_RATE_TITLE,
     TOTAL_DISTANCE_TITLE,
     YEARLY_TITLE,
     MONTHLY_TITLE,

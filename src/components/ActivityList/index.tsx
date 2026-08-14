@@ -3,19 +3,23 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import activities from '@/static/activities.json';
 import styles from './style.module.css';
 import { ACTIVITY_TOTAL } from "@/utils/const";
-import { formatPace } from '@/utils/utils';
+import { Activity as RunActivity, formatPace, formatRunPlace } from '@/utils/utils';
 import { totalStat } from '@assets/index';
 import { loadSvgComponent } from '@/utils/svgUtils';
+import DaySharePoster from '@/components/DaySharePoster';
 
 const MonthofLifeSvg = lazy(() => loadSvgComponent(totalStat, './mol.svg'));
 
 // Define interfaces for our data structures
 interface Activity {
+  run_id?: number;
   start_date_local: string;
   distance: number;
   moving_time: string;
   type: string;
   location_country?: string;
+  summary_polyline?: string;
+  average_heartrate?: number | null;
 }
 
 interface ActivitySummary {
@@ -26,6 +30,8 @@ interface ActivitySummary {
   maxDistance: number;
   maxSpeed: number;
   location: string;
+  heartRateSum: number;
+  heartRateCount: number;
 }
 
 interface DisplaySummary {
@@ -36,6 +42,7 @@ interface DisplaySummary {
   maxDistance: number;
   maxSpeed: number;
   location: string;
+  averageHeartrate: number;
 }
 
 interface ChartData {
@@ -48,6 +55,7 @@ interface ActivityCardProps {
   summary: DisplaySummary;
   dailyDistances: number[];
   interval: string;
+  onOpenDay?: (_period: string) => void;
 }
 
 interface ActivityGroups {
@@ -56,7 +64,7 @@ interface ActivityGroups {
 
 type IntervalType = 'year' | 'month' | 'week' | 'day' | 'life';
 
-const ActivityCard: React.FC<ActivityCardProps> = ({ period, summary, dailyDistances, interval }) => {
+const ActivityCard: React.FC<ActivityCardProps> = ({ period, summary, dailyDistances, interval, onOpenDay }) => {
     const generateLabels = (): number[] => {
         if (interval === 'month') {
             const [year, month] = period.split('-').map(Number);
@@ -79,7 +87,10 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ period, summary, dailyDista
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
         const s = Math.floor(seconds % 60);
-        return `${h}h ${m}m ${s}s`;
+        const parts = [];
+        if (h > 0) parts.push(`${h}h`);
+        parts.push(`${m}m`, `${s}s`);
+        return parts.join(' ');
     };
 
     const formatPace = (speed: number): string => {
@@ -96,12 +107,30 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ period, summary, dailyDista
     const yAxisTicks = Array.from({ length: Math.ceil(yAxisMax / 5) + 1 }, (_, i) => i * 5); // Generate arithmetic sequence
 
     return (
-        <div className={styles.activityCard}>
+        <div
+            className={`${styles.activityCard}${interval === 'day' ? ` ${styles.clickable}` : ''}`}
+            onClick={interval === 'day' ? () => onOpenDay?.(period) : undefined}
+            role={interval === 'day' ? 'button' : undefined}
+        >
             <h2 className={styles.activityName}>{period}</h2>
             <div className={styles.activityDetails}>
                 <p><strong>{ACTIVITY_TOTAL.TOTAL_DISTANCE_TITLE}:</strong> {summary.totalDistance.toFixed(2)} km</p>
-                <p><strong>{ACTIVITY_TOTAL.AVERAGE_SPEED_TITLE}:</strong> {formatPace(summary.averageSpeed)}</p>
+                <p>
+                    <strong>
+                        {interval === 'day'
+                            ? ACTIVITY_TOTAL.AVERAGE_PACE_TITLE
+                            : ACTIVITY_TOTAL.AVERAGE_SPEED_TITLE}
+                        :
+                    </strong>{' '}
+                    {formatPace(summary.averageSpeed)}
+                </p>
                 <p><strong>{ACTIVITY_TOTAL.TOTAL_TIME_TITLE}:</strong> {formatTime(summary.totalTime)}</p>
+                {summary.averageHeartrate > 0 && (
+                    <p>
+                        <strong>{ACTIVITY_TOTAL.AVERAGE_HEART_RATE_TITLE}:</strong>{' '}
+                        {Math.round(summary.averageHeartrate)} bpm
+                    </p>
+                )}
                 {interval !== 'day' && (
                     <>
                         <p><strong>{ACTIVITY_TOTAL.ACTIVITY_COUNT_TITLE}:</strong> {summary.count}</p>
@@ -109,8 +138,11 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ period, summary, dailyDista
                         <p><strong>{ACTIVITY_TOTAL.MAX_SPEED_TITLE}:</strong> {formatPace(summary.maxSpeed)}</p>
                     </>
                 )}
+                {interval === 'day' && summary.location && (
+                    <p><strong>{ACTIVITY_TOTAL.LOCATION_TITLE}:</strong> {summary.location}</p>
+                )}
                 {interval === 'day' && (
-                    <p><strong>{ACTIVITY_TOTAL.LOCATION_TITLE}:</strong> {summary.location || ''}</p>
+                    <p className={styles.cardHint}>点击查看路线</p>
                 )}
                 {['month', 'week', 'year'].includes(interval) && (
                     <div className={styles.chart} style={{ height: '250px', width: '100%' }}>
@@ -141,9 +173,11 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ period, summary, dailyDista
 
 const ActivityList: React.FC = () => {
     const [interval, setInterval] = useState<IntervalType>('month');
+    const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
     const toggleInterval = (newInterval: IntervalType): void => {
         setInterval(newInterval);
+        setSelectedDay(null);
     };
 
     const filterActivities = (activity: Activity): boolean => {
@@ -178,7 +212,7 @@ const ActivityList: React.FC = () => {
                     index = (date.getDay() + 6) % 7; // Return current day (0-6, Monday-Sunday)
                     break;
                 case 'day':
-                    key = date.toLocaleDateString("zh").replaceAll('/', '-'); // Format date as YYYY-MM-DD
+                    key = activity.start_date_local.slice(0, 10);
                     index = 0; // Return 0
                     break;
                 default:
@@ -193,7 +227,9 @@ const ActivityList: React.FC = () => {
                 dailyDistances: [],
                 maxDistance: 0,
                 maxSpeed: 0,
-                location: ''
+                location: '',
+                heartRateSum: 0,
+                heartRateCount: 0,
             };
 
             const distanceKm = activity.distance / 1000; // Convert to kilometers
@@ -209,14 +245,30 @@ const ActivityList: React.FC = () => {
 
             if (distanceKm > acc[key].maxDistance) acc[key].maxDistance = distanceKm;
             if (speedKmh > acc[key].maxSpeed) acc[key].maxSpeed = speedKmh;
+            if (activity.average_heartrate) {
+                acc[key].heartRateSum += activity.average_heartrate;
+                acc[key].heartRateCount += 1;
+            }
 
-            if (interval === 'day') acc[key].location = activity.location_country || '';
+            if (interval === 'day') {
+              const place = formatRunPlace(activity);
+              if (place) {
+                acc[key].location = place;
+              }
+            }
 
             return acc;
         }, {});
     };
 
     const activitiesByInterval = groupActivities(interval);
+    const selectedRuns = selectedDay
+        ? (activities as RunActivity[]).filter(
+            (activity) =>
+                activity.type.toLowerCase() === 'run' &&
+                activity.start_date_local.slice(0, 10) === selectedDay
+          )
+        : [];
 
     return (
         <div className={styles.activityList}>
@@ -269,12 +321,23 @@ const ActivityList: React.FC = () => {
                                     maxDistance: summary.maxDistance,
                                     maxSpeed: summary.maxSpeed,
                                     location: summary.location,
+                                    averageHeartrate: summary.heartRateCount
+                                        ? summary.heartRateSum / summary.heartRateCount
+                                        : 0,
                                 }}
                                 dailyDistances={summary.dailyDistances}
                                 interval={interval}
+                                onOpenDay={setSelectedDay}
                             />
                         ))}
                 </div>
+            )}
+            {selectedDay && selectedRuns.length > 0 && (
+                <DaySharePoster
+                    date={selectedDay}
+                    runs={selectedRuns}
+                    onClose={() => setSelectedDay(null)}
+                />
             )}
         </div>
     );
