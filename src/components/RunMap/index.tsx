@@ -113,6 +113,55 @@ const RunMap = ({
     [startLon, startLat] = points[0];
     [endLon, endLat] = points[points.length - 1];
   }
+
+  const fitRouteInView = useCallback(() => {
+    const map = mapRef.current?.getMap?.();
+    if (!map) {
+      return;
+    }
+    let minLon = Infinity;
+    let minLat = Infinity;
+    let maxLon = -Infinity;
+    let maxLat = -Infinity;
+    for (const feature of geoData.features) {
+      if (feature.geometry?.type !== 'LineString') {
+        continue;
+      }
+      for (const [lon, lat] of (feature.geometry.coordinates as Coordinate[]) || []) {
+        if (lon < minLon) minLon = lon;
+        if (lat < minLat) minLat = lat;
+        if (lon > maxLon) maxLon = lon;
+        if (lat > maxLat) maxLat = lat;
+      }
+    }
+    if (!Number.isFinite(minLon) || !Number.isFinite(minLat)) {
+      return;
+    }
+    const single =
+      geoData.features.filter((feature) => feature.geometry?.type === 'LineString')
+        .length === 1;
+    map.resize();
+    map.fitBounds(
+      [
+        [minLon, minLat],
+        [maxLon, maxLat],
+      ],
+      {
+        padding: single ? 56 : 36,
+        duration: 0,
+        maxZoom: single ? 14.2 : 13,
+      }
+    );
+  }, [geoData]);
+
+  useEffect(() => {
+    if (!isSingleRun) {
+      return;
+    }
+    const timer = window.setTimeout(fitRouteInView, 80);
+    return () => window.clearTimeout(timer);
+  }, [fitRouteInView, isSingleRun]);
+
   let dash = USE_DASH_LINE && !isSingleRun && !isBigMap ? [2, 2] : [2, 0];
   const onMove = React.useCallback(({ viewState }: { viewState: IViewState }) => {
     setViewState(viewState);
