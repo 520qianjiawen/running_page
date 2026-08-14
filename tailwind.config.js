@@ -4,15 +4,23 @@ export default {
   theme: {
     fontFamily: {
       sans: [
-        'DM Sans',
-        '-apple-system',
-        'BlinkMacSystemFont',
-        'Segoe UI',
-        'Roboto',
-        'Helvetica Neue',
-        'sans-serif',
+        'TsangerJinKai02',
+        'Charter',
+        'Georgia',
+        'Source Han Serif SC',
+        'Noto Serif SC',
+        'Songti SC',
+        'serif',
       ],
-      serif: ['Instrument Serif', 'Georgia', 'Times New Roman', 'serif'],
+      serif: [
+        'TsangerJinKai02',
+        'Charter',
+        'Georgia',
+        'Source Han Serif SC',
+        'Noto Serif SC',
+        'Songti SC',
+        'serif',
+      ],
     },
     extend: {
       colors: {

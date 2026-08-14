@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'TsangerJinKai02';
+  src: url('/fonts/TsangerJinKai02-W04.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --ink: #0c0d10;
   --ink-soft: #14161b;
@@ -12,6 +20,8 @@
   --accent: #ff6b9d;
   --accent-soft: rgba(255, 107, 157, 0.14);
   --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  --font: 'TsangerJinKai02', Charter, Georgia, 'Source Han Serif SC',
+    'Noto Serif SC', 'Songti SC', Palatino, serif;
 }
 
 img::selection {
@@ -31,7 +41,8 @@ body {
   text-rendering: optimizeLegibility;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font);
+  font-weight: 400;
   background-color: var(--ink);
   color: var(--cream);
 }
@@ -126,7 +137,8 @@ hr {
 }
 
 .brand-title {
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: var(--font);
+  font-weight: 500;
   font-size: 1.2rem;
   line-height: 1.1;
   color: var(--cream);
@@ -161,7 +173,8 @@ hr {
 }
 
 .hero-copy h1 {
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: var(--font);
+  font-weight: 500;
   font-size: clamp(2.6rem, 6vw, 4.6rem);
   line-height: 0.92;
   letter-spacing: -0.03em;
@@ -173,7 +186,7 @@ hr {
   font-size: 0.78rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .hero-copy p {
@@ -221,7 +234,8 @@ hr {
 }
 
 .metric-value {
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: var(--font);
+  font-weight: 500;
   font-size: clamp(1.7rem, 3vw, 2.15rem);
   line-height: 1.1;
   margin-top: 0.3rem;
@@ -287,7 +301,8 @@ hr {
 
 .stat-item .value {
   display: block;
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: var(--font);
+  font-weight: 500;
   font-size: 1.7rem;
   line-height: 1;
   color: var(--cream);
@@ -358,7 +373,8 @@ hr {
 }
 
 .year-card-head h3 {
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: var(--font);
+  font-weight: 500;
   font-size: 1.55rem;
   line-height: 1;
 }
