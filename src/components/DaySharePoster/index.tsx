@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import Map, { Layer, MapRef, Source } from 'react-map-gl';
+import RunMarker from '@/components/RunMap/RunMarker';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
 import { MAPBOX_TOKEN, RUN_COLOR } from '@/utils/const';
 import {
@@ -81,7 +82,31 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
     };
   }, [date, runs]);
 
-  const geoData = useMemo(() => geoJsonForRuns(runs), [runs]);
+  const sortedRuns = useMemo(
+    () =>
+      [...runs].sort((a, b) =>
+        a.start_date_local.localeCompare(b.start_date_local)
+      ),
+    [runs]
+  );
+  const geoData = useMemo(() => geoJsonForRuns(sortedRuns), [sortedRuns]);
+  const endpoints = useMemo(() => {
+    const lines = geoData.features
+      .map((feature) => feature.geometry.coordinates as Coordinate[])
+      .filter((coords) => coords.length > 1);
+    if (!lines.length) {
+      return null;
+    }
+    const start = lines[0][0];
+    const endLine = lines[lines.length - 1];
+    const end = endLine[endLine.length - 1];
+    return {
+      startLon: start[0],
+      startLat: start[1],
+      endLon: end[0],
+      endLat: end[1],
+    };
+  }, [geoData]);
   const routeBounds = useMemo(() => {
     let minLon = Infinity;
     let minLat = Infinity;
@@ -115,7 +140,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
     }
     map.resize();
     map.fitBounds(routeBounds, {
-      padding: 32,
+      padding: 40,
       duration: 0,
       maxZoom: 14,
     });
@@ -170,7 +195,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
                   : 31.79,
                 zoom: 12,
                 bounds: routeBounds ?? undefined,
-                fitBoundsOptions: { padding: 32, maxZoom: 14 },
+                fitBoundsOptions: { padding: 40, maxZoom: 14 },
               }}
               onLoad={fitRoute}
               mapStyle="mapbox://styles/mapbox/dark-v11"
@@ -205,6 +230,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
                   layout={{ 'line-join': 'round', 'line-cap': 'round' }}
                 />
               </Source>
+              {endpoints && <RunMarker {...endpoints} />}
             </Map>
           ) : (
             <div className={styles.mapEmpty}>这条记录没有轨迹</div>
