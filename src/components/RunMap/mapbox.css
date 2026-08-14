@@ -777,3 +777,8 @@ a.mapboxgl-ctrl-logo.mapboxgl-compact {
   filter: drop-shadow(0 0 12px rgba(255, 107, 157, 0.6));
   transform: scale(1.15);
 }
+
+a.mapboxgl-ctrl-logo,
+.mapboxgl-ctrl-logo {
+  display: none !important;
+}

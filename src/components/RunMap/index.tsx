@@ -148,6 +148,7 @@ const RunMap = ({
       mapStyle="mapbox://styles/mapbox/dark-v11"
       ref={mapRefCallback}
       mapboxAccessToken={MAPBOX_TOKEN}
+      attributionControl={false}
     >
       <RunMapButtons changeYear={changeYear} thisYear={thisYear} />
       <Source id="data" type="geojson" data={geoData}>
