@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { toBlob } from 'html-to-image';
+import { toCanvas } from 'html-to-image';
 import Map, { Layer, MapRef, Source } from 'react-map-gl';
 import RunMarker from '@/components/RunMap/RunMarker';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
@@ -41,6 +41,105 @@ const movingSeconds = (movingTime: string): number => {
     : movingTime;
   const [hours, minutes, seconds] = chunk.split(':').map(Number);
   return (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
+};
+
+const mercatorY = (lat: number) => {
+  const rad = (lat * Math.PI) / 180;
+  return Math.log(Math.tan(Math.PI / 4 + rad / 2));
+};
+
+const projectToBox = (
+  lon: number,
+  lat: number,
+  bounds: [[number, number], [number, number]],
+  width: number,
+  height: number,
+  pad: number
+) => {
+  const [minLon, minLat] = bounds[0];
+  const [maxLon, maxLat] = bounds[1];
+  const y0 = mercatorY(minLat);
+  const y1 = mercatorY(maxLat);
+  const x = pad + ((lon - minLon) / (maxLon - minLon || 1)) * (width - pad * 2);
+  const y = pad + ((y1 - mercatorY(lat)) / (y1 - y0 || 1)) * (height - pad * 2);
+  return [x, y] as const;
+};
+
+const clipRoundRect = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) => {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
+  ctx.clip();
+};
+
+const drawExportedRoute = (
+  ctx: CanvasRenderingContext2D,
+  lines: Coordinate[][],
+  bounds: [[number, number], [number, number]],
+  x: number,
+  y: number,
+  width: number,
+  height: number
+) => {
+  const pad = Math.min(width, height) * 0.1;
+  ctx.save();
+  clipRoundRect(ctx, x, y, width, height, 18);
+  ctx.fillStyle = '#16181e';
+  ctx.fillRect(x, y, width, height);
+  ctx.strokeStyle = RUN_COLOR;
+  ctx.lineWidth = Math.max(3.5, width / 110);
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.shadowColor = 'rgba(255, 107, 157, 0.45)';
+  ctx.shadowBlur = 8;
+  for (const line of lines) {
+    if (line.length < 2) {
+      continue;
+    }
+    ctx.beginPath();
+    line.forEach(([lon, lat], index) => {
+      const [px, py] = projectToBox(lon, lat, bounds, width, height, pad);
+      if (index === 0) {
+        ctx.moveTo(x + px, y + py);
+      } else {
+        ctx.lineTo(x + px, y + py);
+      }
+    });
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+  const drawDot = (lon: number, lat: number, color: string) => {
+    const [px, py] = projectToBox(lon, lat, bounds, width, height, pad);
+    ctx.beginPath();
+    ctx.arc(x + px, y + py, Math.max(6, width / 55), 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+  };
+  const first = lines[0];
+  const last = lines[lines.length - 1];
+  if (first?.length) {
+    drawDot(first[0][0], first[0][1], '#22c55e');
+  }
+  if (last?.length) {
+    const end = last[last.length - 1];
+    drawDot(end[0], end[1], '#ef4444');
+  }
+  ctx.restore();
 };
 
 const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
@@ -170,47 +269,6 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
   );
   const mapRef = useRef<MapRef>(null);
 
-  const snapshotMap = useCallback(async () => {
-    const map = mapRef.current?.getMap?.();
-    if (!map) {
-      return '';
-    }
-    map.triggerRepaint();
-    await new Promise<void>((resolve) => {
-      map.once('render', () => resolve());
-      window.setTimeout(() => resolve(), 250);
-    });
-    const glCanvas = map.getCanvas();
-    const shot = document.createElement('canvas');
-    shot.width = glCanvas.width;
-    shot.height = glCanvas.height;
-    const ctx = shot.getContext('2d');
-    if (!ctx) {
-      return '';
-    }
-    ctx.drawImage(glCanvas, 0, 0);
-    if (endpoints) {
-      const scaleX = glCanvas.width / Math.max(glCanvas.clientWidth, 1);
-      const scaleY = glCanvas.height / Math.max(glCanvas.clientHeight, 1);
-      const drawDot = (lng: number, lat: number, color: string) => {
-        const point = map.project([lng, lat]);
-        const x = point.x * scaleX;
-        const y = point.y * scaleY;
-        const radius = 7 * scaleX;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.lineWidth = 2 * scaleX;
-        ctx.strokeStyle = '#ffffff';
-        ctx.stroke();
-      };
-      drawDot(endpoints.startLon, endpoints.startLat, '#22c55e');
-      drawDot(endpoints.endLon, endpoints.endLat, '#ef4444');
-    }
-    return shot.toDataURL('image/png');
-  }, [endpoints]);
-
   const savePoster = useCallback(
     async (event: React.MouseEvent) => {
       event.stopPropagation();
@@ -222,34 +280,15 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
       setSaveHint('正在生成图片…');
       const mapWrap = poster.querySelector('[data-map-wrap]') as HTMLElement | null;
       const mapEl = mapWrap?.querySelector('.mapboxgl-map') as HTMLElement | null;
-      let overlay: HTMLImageElement | null = null;
       const previousVisibility = mapEl?.style.visibility;
       try {
-        const mapUrl = await snapshotMap();
-        if (mapUrl && mapWrap) {
-          overlay = document.createElement('img');
-          overlay.src = mapUrl;
-          overlay.alt = '';
-          overlay.setAttribute('data-map-shot', '1');
-          overlay.style.cssText =
-            'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:8;';
-          mapWrap.appendChild(overlay);
-          await new Promise<void>((resolve, reject) => {
-            if (overlay!.complete) {
-              resolve();
-              return;
-            }
-            overlay!.onload = () => resolve();
-            overlay!.onerror = () => reject(new Error('map snapshot failed'));
-          });
-          if (mapEl) {
-            mapEl.style.visibility = 'hidden';
-          }
+        if (mapEl) {
+          mapEl.style.visibility = 'hidden';
         }
         await document.fonts?.ready;
-        await new Promise((resolve) => window.setTimeout(resolve, 40));
-        const blob = await toBlob(poster, {
-          pixelRatio: Math.min(window.devicePixelRatio || 2, 3),
+        const pixelRatio = Math.min(window.devicePixelRatio || 2, 2);
+        const htmlCanvas = await toCanvas(poster, {
+          pixelRatio,
           cacheBust: true,
           backgroundColor: '#101217',
           filter: (node) => {
@@ -259,6 +298,25 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
             return !node.classList.contains('mapboxgl-map');
           },
         });
+        const ctx = htmlCanvas.getContext('2d');
+        if (ctx && mapWrap && routeBounds) {
+          const posterBox = poster.getBoundingClientRect();
+          const mapBox = mapWrap.getBoundingClientRect();
+          const scale = htmlCanvas.width / posterBox.width;
+          const x = (mapBox.left - posterBox.left) * scale;
+          const y = (mapBox.top - posterBox.top) * scale;
+          const width = mapBox.width * scale;
+          const height = mapBox.height * scale;
+          const lines = geoData.features
+            .map((feature) => feature.geometry.coordinates as Coordinate[])
+            .filter((coords) => coords.length > 1);
+          if (lines.length) {
+            drawExportedRoute(ctx, lines, routeBounds, x, y, width, height);
+          }
+        }
+        const blob = await new Promise<Blob | null>((resolve) =>
+          htmlCanvas.toBlob(resolve, 'image/png')
+        );
         if (!blob) {
           throw new Error('empty image');
         }
@@ -291,11 +349,10 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
         if (mapEl) {
           mapEl.style.visibility = previousVisibility || '';
         }
-        overlay?.remove();
         setSaving(false);
       }
     },
-    [date, saving, siteTitle, snapshotMap]
+    [date, geoData, routeBounds, saving, siteTitle]
   );
 
   const fitRoute = useCallback(() => {
