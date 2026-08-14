@@ -346,11 +346,14 @@ const getBoundsForGeoData = (
     return { longitude: 20, latitude: 20, zoom: 3 };
   }
   if (points.length === 2 && String(points[0]) === String(points[1])) {
-    return { longitude: points[0][0], latitude: points[0][1], zoom: 9 };
+    return { longitude: points[0][0], latitude: points[0][1], zoom: 14 };
   }
-  // Calculate corner values of bounds
-  const pointsLong = points.map((point) => point[0]) as number[];
-  const pointsLat = points.map((point) => point[1]) as number[];
+  // Use every coordinate so a single run fills the map more tightly.
+  const allPoints = features.flatMap(
+    (f) => (f.geometry.coordinates as Coordinate[]) || []
+  );
+  const pointsLong = allPoints.map((point) => point[0]) as number[];
+  const pointsLat = allPoints.map((point) => point[1]) as number[];
   const cornersLongLat: [Coordinate, Coordinate] = [
     [Math.min(...pointsLong), Math.min(...pointsLat)],
     [Math.max(...pointsLong), Math.max(...pointsLat)],
@@ -358,10 +361,10 @@ const getBoundsForGeoData = (
   const viewState = new WebMercatorViewport({
     width: 800,
     height: 600,
-  }).fitBounds(cornersLongLat, { padding: 200 });
+  }).fitBounds(cornersLongLat, { padding: 56 });
   let { longitude, latitude, zoom } = viewState;
-  if (features.length > 1) {
-    zoom = 12.5; // 增加 zoom 让路线显示更大
+  if (features.length === 1) {
+    zoom = Math.min(zoom + 0.8, 15.8);
   }
   return { longitude, latitude, zoom };
 };
