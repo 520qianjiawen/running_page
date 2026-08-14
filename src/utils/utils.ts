@@ -348,15 +348,27 @@ const getBoundsForGeoData = (
   if (points.length === 2 && String(points[0]) === String(points[1])) {
     return { longitude: points[0][0], latitude: points[0][1], zoom: 14 };
   }
-  // Use every coordinate so a single run fills the map more tightly.
-  const allPoints = features.flatMap(
-    (f) => (f.geometry.coordinates as Coordinate[]) || []
-  );
-  const pointsLong = allPoints.map((point) => point[0]) as number[];
-  const pointsLat = allPoints.map((point) => point[1]) as number[];
+  // Walk coordinates in a loop. Spreading tens of thousands of
+  // points into Math.min(...pts) blows the call stack in Safari.
+  let minLon = Infinity;
+  let minLat = Infinity;
+  let maxLon = -Infinity;
+  let maxLat = -Infinity;
+  for (const feature of features) {
+    const coords = (feature.geometry.coordinates as Coordinate[]) || [];
+    for (const [lon, lat] of coords) {
+      if (lon < minLon) minLon = lon;
+      if (lat < minLat) minLat = lat;
+      if (lon > maxLon) maxLon = lon;
+      if (lat > maxLat) maxLat = lat;
+    }
+  }
+  if (!Number.isFinite(minLon) || !Number.isFinite(minLat)) {
+    return { longitude: 20, latitude: 20, zoom: 3 };
+  }
   const cornersLongLat: [Coordinate, Coordinate] = [
-    [Math.min(...pointsLong), Math.min(...pointsLat)],
-    [Math.max(...pointsLong), Math.max(...pointsLat)],
+    [minLon, minLat],
+    [maxLon, maxLat],
   ];
   const viewState = new WebMercatorViewport({
     width: 800,
