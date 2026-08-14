@@ -9,60 +9,57 @@
 
 .buttons {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  margin: 0 auto;
-  padding-right: 70px;
+  top: 12px;
+  left: 12px;
+  margin: 0;
+  padding-right: 72px;
   z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .button {
-  display: inline-block;
-  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  padding: 0.5rem 0.4rem;
-  margin-top: 0.1rem;
-  font-size: 1rem;
+  padding: 0.28rem 0.65rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
   text-align: center;
-  color: #FF6B9D;
+  color: #ece8e1;
   font-weight: 600;
-  transition: all 0.3s ease;
-  border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(5px);
+  transition: all 0.2s ease;
+  border-radius: 999px;
+  background: rgba(12, 13, 16, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
 }
 
 .button:hover {
-  color: #FF006E;
-  transform: scale(1.05);
-  background-color: rgba(255, 107, 157, 0.2);
+  color: #ff6b9d;
+  border-color: rgba(255, 107, 157, 0.45);
+  background: rgba(12, 13, 16, 0.78);
 }
 
 .selected {
-  color: #FF6B9D;
-  background: linear-gradient(135deg, rgba(255, 107, 157, 0.2), rgba(0, 217, 255, 0.2));
-  border-radius: 4px;
-  box-shadow: 0 0 10px rgba(255, 107, 157, 0.3);
+  color: #1a0d12;
+  background: #ff6b9d;
+  border-color: #ff6b9d;
 }
 
 .runTitle {
-  height: 29px;
-  width: 710px;
+  max-width: calc(100% - 160px);
   position: absolute;
-  bottom: 0px;
-  left: 120px;
-  cursor: pointer;
-  color: #FF6B9D;
-  animation: titleGlow 2s ease-in-out infinite;
-}
-
-@keyframes titleGlow {
-  0%, 100% {
-    text-shadow: 0 0 5px rgba(255, 107, 157, 0.5);
-  }
-  50% {
-    text-shadow: 0 0 15px rgba(255, 107, 157, 0.8), 0 0 25px rgba(0, 217, 255, 0.4);
-  }
+  bottom: 12px;
+  left: 16px;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(12, 13, 16, 0.55);
+  backdrop-filter: blur(10px);
+  color: #f4f1ea;
+  font-size: 0.82rem;
 }
 
 .lights {
@@ -118,14 +115,14 @@
   }
 
   .button {
-    padding: 0.3rem 0.3rem;
-    font-size: 0.85rem;
+    padding: 0.26rem 0.5rem;
+    font-size: 0.72rem;
   }
 
   .runTitle {
-    width: calc(100% - 220px);
-    left: 100px;
-    font-size: 0.95rem;
+    max-width: calc(100% - 24px);
+    left: 12px;
+    font-size: 0.78rem;
   }
 
   .lights {
@@ -148,18 +145,17 @@
   }
 
   .button {
-    padding: 0.25rem 0.2rem;
-    font-size: 0.7rem;
+    padding: 0.22rem 0.42rem;
+    font-size: 0.68rem;
     flex: 1;
-    min-width: 45px;
+    min-width: 44px;
   }
 
   .runTitle {
-    width: calc(100% - 100px);
-    left: 50px;
-    font-size: 0.8rem;
-    height: 22px;
-    bottom: 5px;
+    max-width: calc(100% - 20px);
+    left: 10px;
+    font-size: 0.72rem;
+    bottom: 8px;
   }
 
   .lights {

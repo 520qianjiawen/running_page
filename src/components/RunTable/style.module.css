@@ -1,66 +1,92 @@
-@media only screen and (max-width: 800px) {
-
-  /* 当屏幕宽度小于 800px 时 */
-  .runTable th:nth-child(3),
-  .runTable td:nth-child(3)  {
-    display: none;
-    /* 隐藏第3列 */
-  }
-}
-
-@media only screen and (max-width: 700px) {
-
-  /* 当屏幕宽度小于 700px 时 */
-  .runTable th:nth-child(5),
-  .runTable td:nth-child(5)  {
-    display: none;
-    /* 隐藏第5列 */
-  }
-}
-
-.runTable {
-  width: 100%;
-  font-variant: tabular-nums;
-  margin: 2rem 0 5rem 0;
-  color: rgb(204, 204, 204);
-  background-color: rgb(26, 26, 26);
-
-  :is(thead) {
-    color: rgb(204, 204, 204);
-    text-align: right;
-
-    :is(th) {
-      padding: 0.5rem;
-    }
-  }
-}
-
-.runRow {
-  cursor: pointer;
-  :is(td) {
-    padding: 0.5rem;
-    border: 0;
-    text-align: right;
-
-    &:first-child {
-      text-align: left;
-    }
-  }
-
-  &:hover {
-    background-color: lighten(rgb(26, 26, 26), 3%);
-  }
-}
-
-.selected {
-  color: #FF6B9D;
-}
-
 .tableContainer {
   width: 100%;
   overflow-x: auto;
 }
 
+.runTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  color: #d8d5ce;
+  background: transparent;
+}
+
+.runTable thead {
+  color: #8d8b86;
+  text-align: right;
+}
+
+.runTable th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0.9rem 0.85rem 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(244, 241, 234, 0.08);
+  background: #16181e;
+}
+
+.runTable th:hover {
+  color: #ff6b9d;
+}
+
+.runRow {
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.runRow td {
+  padding: 0.82rem 0.85rem;
+  border: 0;
+  text-align: right;
+  border-bottom: 1px solid rgba(244, 241, 234, 0.05);
+  white-space: nowrap;
+}
+
+.runRow td:first-child {
+  text-align: left;
+  color: #f4f1ea;
+}
+
+.runRow:hover {
+  background: rgba(255, 107, 157, 0.06);
+}
+
+.selected {
+  color: #ff6b9d;
+  background: rgba(255, 107, 157, 0.1);
+}
+
+.selected td:first-child {
+  color: #ff6b9d;
+  box-shadow: inset 3px 0 0 #ff6b9d;
+}
+
 .runDate {
-  color: rgb(204, 204, 204);
+  color: #8d8b86;
+}
+
+@media only screen and (max-width: 800px) {
+  .runTable th:nth-child(3),
+  .runTable td:nth-child(3) {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 700px) {
+  .runTable th:nth-child(5),
+  .runTable td:nth-child(5) {
+    display: none;
+  }
+
+  .runTable th,
+  .runRow td {
+    padding: 0.7rem 0.55rem;
+    font-size: 0.82rem;
+  }
 }

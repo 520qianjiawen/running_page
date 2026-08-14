@@ -2,34 +2,31 @@ import YearStat from '@/components/YearStat';
 import useActivities from '@/hooks/useActivities';
 import { INFO_MESSAGE } from '@/utils/const';
 
-const YearsStat = ({ year, onClick }: { year: string, onClick: (_year: string) => void }) => {
+const YearsStat = ({
+  year,
+  onClick,
+}: {
+  year: string;
+  onClick: (_year: string) => void;
+}) => {
   const { years } = useActivities();
-  // make sure the year click on front
-  let yearsArrayUpdate = years.slice();
-  yearsArrayUpdate.push('Total');
-  yearsArrayUpdate = yearsArrayUpdate.filter((x) => x !== year);
-  yearsArrayUpdate.unshift(year);
+  const yearsArrayUpdate = [year, ...years.filter((x) => x !== year), 'Total'].filter(
+    (value, index, arr) => arr.indexOf(value) === index
+  );
 
-  // for short solution need to refactor
   return (
-    <div className="w-full lg:w-full pb-16 pr-16 lg:pr-16">
-      <section className="pb-0">
-        <p className="leading-relaxed">
-          {INFO_MESSAGE(years.length, year)}
-          <br />
-        </p>
-      </section>
-      <hr color="red" />
-      {yearsArrayUpdate.map((year) => (
-        <YearStat key={year} year={year} onClick={onClick} />
+    <aside className="panel">
+      <div className="panel-title">年度</div>
+      <p className="intro-text mb-4">{INFO_MESSAGE(years.length, year)}</p>
+      {yearsArrayUpdate.map((item) => (
+        <YearStat
+          key={item}
+          year={item}
+          onClick={onClick}
+          active={item === year}
+        />
       ))}
-      {// eslint-disable-next-line no-prototype-builtins
-        yearsArrayUpdate.hasOwnProperty('Total') ? (
-          <YearStat key="Total" year="Total" onClick={onClick} />
-        ) : (
-          <div />
-        )}
-    </div>
+    </aside>
   );
 };
 

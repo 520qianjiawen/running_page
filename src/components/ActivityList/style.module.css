@@ -1,22 +1,22 @@
 .activityList {
-  padding: 20px;
-  background-color: rgb(26, 26, 26);
-  color: #FF6B9D;
+  padding: 0 0 20px;
+  background-color: transparent;
+  color: #f4f1ea;
 }
 
 .filterContainer {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 10px;
   margin-bottom: 20px;
 }
 
 .filterContainer select {
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #444;
-  background-color: rgb(36, 36, 36);
-  color: rgb(204, 204, 204);
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 241, 234, 0.1);
+  background-color: rgba(20, 22, 27, 0.78);
+  color: #f4f1ea;
   cursor: pointer;
 }
 
@@ -28,12 +28,12 @@
 }
 
 .activityCard {
-  background-color: rgb(36, 36, 36);
-  border: 1px solid #444;
-  border-radius: 8px;
+  background-color: rgba(20, 22, 27, 0.78);
+  border: 1px solid rgba(244, 241, 234, 0.1);
+  border-radius: 18px;
   padding: 16px;
   width: 280px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
   transition: transform 0.2s;
 }
 
@@ -45,7 +45,8 @@
 .activityName {
   font-size: 1.5em;
   margin-bottom: 10px;
-  color: #FF6B9D;
+  color: #f4f1ea;
+  font-family: 'Instrument Serif', Georgia, serif;
 }
 
 .activityDetails p {

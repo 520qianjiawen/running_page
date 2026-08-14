@@ -1,8 +1,7 @@
 // const
 const MAPBOX_TOKEN =
-  // For security reasons, use environment variable for production.
-  // Set VITE_MAPBOX_TOKEN in your Vercel project settings.
-  import.meta.env.VITE_MAPBOX_TOKEN || '';
+  import.meta.env.VITE_MAPBOX_TOKEN ||
+  'pk.eyJ1IjoieWlob25nMDYxOCIsImEiOiJja2J3M28xbG4wYzl0MzJxZm0ya2Fua2p2In0.PNKfkeQwYuyGOTT_x9BJ4Q';
 const MUNICIPALITY_CITIES_ARR = [
   '北京市',
   '上海市',
@@ -52,8 +51,8 @@ const RICH_TITLE = false;
 const IS_CHINESE = true;
 const USE_ANIMATION_FOR_GRID = false;
 const CHINESE_INFO_MESSAGE = (yearLength: number, year: string): string => {
-  const yearStr = year === 'Total' ? '所有' : ` ${year} `;
-  return `我用 App 记录自己跑步 ${yearLength} 年了，下面列表展示的是${yearStr}的数据`;
+  const yearStr = year === 'Total' ? '全部年份' : `${year} 年`;
+  return `已记录 ${yearLength} 年的跑步，当前展示${yearStr}的数据`;
 };
 const ENGLISH_INFO_MESSAGE = (yearLength: number, year: string): string =>
   `Running Journey with ${yearLength} Years, the table shows year ${year} data`;

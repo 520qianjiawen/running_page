@@ -4,18 +4,26 @@ export default {
   theme: {
     fontFamily: {
       sans: [
+        'DM Sans',
         '-apple-system',
         'BlinkMacSystemFont',
         'Segoe UI',
         'Roboto',
-        'Oxygen-Sans',
-        'Ubuntu',
-        'Cantarell',
         'Helvetica Neue',
         'sans-serif',
       ],
+      serif: ['Instrument Serif', 'Georgia', 'Times New Roman', 'serif'],
     },
-    extend: {},
+    extend: {
+      colors: {
+        ink: '#0c0d10',
+        panel: '#14161b',
+        line: 'rgba(244, 241, 234, 0.1)',
+        cream: '#f4f1ea',
+        mute: '#8d8b86',
+        accent: '#ff6b9d',
+      },
+    },
   },
   plugins: [],
 };

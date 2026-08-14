@@ -1,27 +1,26 @@
-import Stat from '@/components/Stat';
 import useActivities from '@/hooks/useActivities';
 
-// only support China for now
 const CitiesStat = ({ onClick }: { onClick: (_city: string) => void }) => {
   const { cities } = useActivities();
 
   const citiesArr = Object.entries(cities);
   citiesArr.sort((a, b) => b[1] - a[1]);
   return (
-    <div className="cursor-pointer">
-      <section>
+    <section className="mb-5">
+      <div className="panel-title">城市</div>
+      <div className="chip-cloud">
         {citiesArr.map(([city, distance]) => (
-          <Stat
+          <button
             key={city}
-            value={city}
-            description={` ${(distance / 1000).toFixed(0)} KM`}
-            citySize={3}
+            type="button"
+            className="chip"
             onClick={() => onClick(city)}
-          />
+          >
+            {city} <span>{(distance / 1000).toFixed(0)} km</span>
+          </button>
         ))}
-      </section>
-      <hr color="red" />
-    </div>
+      </div>
+    </section>
   );
 };
 

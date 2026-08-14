@@ -1,4 +1,3 @@
-import Stat from '@/components/Stat';
 import useActivities from '@/hooks/useActivities';
 
 const PeriodStat = ({ onClick }: { onClick: (_period: string) => void }) => {
@@ -7,20 +6,21 @@ const PeriodStat = ({ onClick }: { onClick: (_period: string) => void }) => {
   const periodArr = Object.entries(runPeriod);
   periodArr.sort((a, b) => b[1] - a[1]);
   return (
-    <div className="cursor-pointer">
-      <section>
+    <section>
+      <div className="panel-title">时段</div>
+      <div className="chip-cloud">
         {periodArr.map(([period, times]) => (
-          <Stat
+          <button
             key={period}
-            value={period}
-            description={` ${times} Runs`}
-            citySize={3}
+            type="button"
+            className="chip"
             onClick={() => onClick(period)}
-          />
+          >
+            {period} <span>{times} 次</span>
+          </button>
         ))}
-      </section>
-      <hr color="red" />
-    </div>
+      </div>
+    </section>
   );
 };
 

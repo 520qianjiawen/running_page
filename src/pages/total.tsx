@@ -1,11 +1,12 @@
 import React from 'react';
 import ActivityList from '@/components/ActivityList';
+import Layout from '@/components/Layout';
 
 const HomePage = () => {
   return (
-    <div>
+    <Layout>
       <ActivityList />
-    </div>
+    </Layout>
   );
 };
 

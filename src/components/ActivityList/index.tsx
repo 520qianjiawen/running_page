@@ -1,6 +1,5 @@
 import React, { lazy, useState, Suspense } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { useNavigate } from 'react-router-dom';
 import activities from '@/static/activities.json';
 import styles from './style.module.css';
 import { ACTIVITY_TOTAL } from "@/utils/const";
@@ -142,7 +141,6 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ period, summary, dailyDista
 
 const ActivityList: React.FC = () => {
     const [interval, setInterval] = useState<IntervalType>('month');
-    const navigate = useNavigate();
 
     const toggleInterval = (newInterval: IntervalType): void => {
         setInterval(newInterval);
@@ -223,12 +221,6 @@ const ActivityList: React.FC = () => {
     return (
         <div className={styles.activityList}>
             <div className={styles.filterContainer}>
-                <button
-                    className={styles.smallHomeButton}
-                    onClick={() => navigate('/')}
-                >
-                    Home
-                </button>
                 <select
                     onChange={(e) => toggleInterval(e.target.value as IntervalType)}
                     value={interval}
