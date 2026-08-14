@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toCanvas } from 'html-to-image';
+import * as mapboxPolyline from '@mapbox/polyline';
 import Map, { Layer, MapRef, Source } from 'react-map-gl';
 import RunMarker from '@/components/RunMap/RunMarker';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
@@ -140,6 +141,69 @@ const drawExportedRoute = (
     drawDot(end[0], end[1], '#ef4444');
   }
   ctx.restore();
+};
+
+const simplifyLine = (coords: Coordinate[], maxPoints = 80): Coordinate[] => {
+  if (coords.length <= maxPoints) {
+    return coords;
+  }
+  const step = (coords.length - 1) / (maxPoints - 1);
+  return Array.from({ length: maxPoints }, (_, index) =>
+    coords[Math.round(index * step)]
+  );
+};
+
+const loadStaticMapImage = async (
+  lines: Coordinate[][],
+  width: number,
+  height: number
+): Promise<HTMLImageElement | null> => {
+  const longest = lines.reduce(
+    (best, line) => (line.length > best.length ? line : best),
+    [] as Coordinate[]
+  );
+  if (longest.length < 2) {
+    return null;
+  }
+  let points = simplifyLine(longest, 90);
+  const w = Math.min(1280, Math.max(240, Math.round(width)));
+  const h = Math.min(1280, Math.max(240, Math.round(height)));
+  const start = points[0];
+  const end = points[points.length - 1];
+  const buildUrl = (coords: Coordinate[]) => {
+    const encoded = encodeURIComponent(
+      mapboxPolyline.encode(coords.map(([lon, lat]) => [lat, lon]))
+    );
+    const overlay = [
+      `pin-s+22c55e(${start[0]},${start[1]})`,
+      `pin-s+ef4444(${end[0]},${end[1]})`,
+      `path-5+ff6b9d-1(${encoded})`,
+    ].join(',');
+    return (
+      `https://api.mapbox.com/styles/v1/mapbox/light-v11/static/${overlay}/auto/${w}x${h}@2x` +
+      `?padding=48&logo=false&attribution=false&access_token=${MAPBOX_TOKEN}`
+    );
+  };
+  let url = buildUrl(points);
+  while (url.length > 7500 && points.length > 20) {
+    points = simplifyLine(points, Math.floor(points.length * 0.7));
+    url = buildUrl(points);
+  }
+  const response = await fetch(url);
+  if (!response.ok) {
+    return null;
+  }
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const image = new Image();
+  image.crossOrigin = 'anonymous';
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error('static map failed'));
+    image.src = objectUrl;
+  });
+  URL.revokeObjectURL(objectUrl);
+  return image;
 };
 
 const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
@@ -311,7 +375,23 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
             .map((feature) => feature.geometry.coordinates as Coordinate[])
             .filter((coords) => coords.length > 1);
           if (lines.length) {
-            drawExportedRoute(ctx, lines, routeBounds, x, y, width, height);
+            ctx.save();
+            clipRoundRect(ctx, x, y, width, height, 18 * scale);
+            try {
+              const staticMap = await loadStaticMapImage(
+                lines,
+                mapBox.width * 2,
+                mapBox.height * 2
+              );
+              if (staticMap) {
+                ctx.drawImage(staticMap, x, y, width, height);
+              } else {
+                drawExportedRoute(ctx, lines, routeBounds, x, y, width, height);
+              }
+            } catch {
+              drawExportedRoute(ctx, lines, routeBounds, x, y, width, height);
+            }
+            ctx.restore();
           }
         }
         const blob = await new Promise<Blob | null>((resolve) =>
@@ -428,7 +508,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
                 fitBoundsOptions: { padding: 40, maxZoom: 14 },
               }}
               onLoad={fitRoute}
-              mapStyle="mapbox://styles/mapbox/dark-v11"
+              mapStyle="mapbox://styles/mapbox/light-v11"
               mapboxAccessToken={MAPBOX_TOKEN}
               preserveDrawingBuffer={true}
               attributionControl={false}
