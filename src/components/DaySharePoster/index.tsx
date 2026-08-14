@@ -1,13 +1,13 @@
-import { useEffect, useMemo } from 'react';
-import Map, { Layer, Source } from 'react-map-gl';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import Map, { Layer, MapRef, Source } from 'react-map-gl';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
 import { MAPBOX_TOKEN, RUN_COLOR } from '@/utils/const';
 import {
   Activity,
+  Coordinate,
   formatPace,
   formatRunPlace,
   geoJsonForRuns,
-  getBoundsForGeoData,
 } from '@/utils/utils';
 import styles from './style.module.css';
 import '@/components/RunMap/mapbox.css';
@@ -82,10 +82,44 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
   }, [date, runs]);
 
   const geoData = useMemo(() => geoJsonForRuns(runs), [runs]);
-  const viewState = useMemo(() => getBoundsForGeoData(geoData), [geoData]);
+  const routeBounds = useMemo(() => {
+    let minLon = Infinity;
+    let minLat = Infinity;
+    let maxLon = -Infinity;
+    let maxLat = -Infinity;
+    for (const feature of geoData.features) {
+      for (const [lon, lat] of (feature.geometry.coordinates as Coordinate[]) || []) {
+        if (lon < minLon) minLon = lon;
+        if (lat < minLat) minLat = lat;
+        if (lon > maxLon) maxLon = lon;
+        if (lat > maxLat) maxLat = lat;
+      }
+    }
+    if (!Number.isFinite(minLon)) {
+      return null;
+    }
+    return [
+      [minLon, minLat],
+      [maxLon, maxLat],
+    ] as [[number, number], [number, number]];
+  }, [geoData]);
   const hasRoute = geoData.features.some(
     (feature) => feature.geometry.coordinates.length > 1
   );
+  const mapRef = useRef<MapRef>(null);
+
+  const fitRoute = useCallback(() => {
+    const map = mapRef.current?.getMap?.();
+    if (!map || !routeBounds) {
+      return;
+    }
+    map.resize();
+    map.fitBounds(routeBounds, {
+      padding: 32,
+      duration: 0,
+      maxZoom: 14,
+    });
+  }, [routeBounds]);
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -94,11 +128,15 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
       if (event.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKey);
+    const frame = window.requestAnimationFrame(fitRoute);
+    const timer = window.setTimeout(fitRoute, 180);
     return () => {
       document.body.style.overflow = previous;
       window.removeEventListener('keydown', onKey);
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
     };
-  }, [onClose]);
+  }, [onClose, fitRoute]);
 
   return (
     <div className={styles.backdrop} onClick={onClose} role="presentation">
@@ -122,7 +160,19 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
         <div className={styles.mapWrap}>
           {hasRoute ? (
             <Map
-              {...viewState}
+              ref={mapRef}
+              initialViewState={{
+                longitude: routeBounds
+                  ? (routeBounds[0][0] + routeBounds[1][0]) / 2
+                  : 120.63,
+                latitude: routeBounds
+                  ? (routeBounds[0][1] + routeBounds[1][1]) / 2
+                  : 31.79,
+                zoom: 12,
+                bounds: routeBounds ?? undefined,
+                fitBoundsOptions: { padding: 32, maxZoom: 14 },
+              }}
+              onLoad={fitRoute}
               mapStyle="mapbox://styles/mapbox/dark-v11"
               mapboxAccessToken={MAPBOX_TOKEN}
               attributionControl={false}
