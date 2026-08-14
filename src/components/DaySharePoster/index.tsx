@@ -170,6 +170,47 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
   );
   const mapRef = useRef<MapRef>(null);
 
+  const snapshotMap = useCallback(async () => {
+    const map = mapRef.current?.getMap?.();
+    if (!map) {
+      return '';
+    }
+    map.triggerRepaint();
+    await new Promise<void>((resolve) => {
+      map.once('render', () => resolve());
+      window.setTimeout(() => resolve(), 250);
+    });
+    const glCanvas = map.getCanvas();
+    const shot = document.createElement('canvas');
+    shot.width = glCanvas.width;
+    shot.height = glCanvas.height;
+    const ctx = shot.getContext('2d');
+    if (!ctx) {
+      return '';
+    }
+    ctx.drawImage(glCanvas, 0, 0);
+    if (endpoints) {
+      const scaleX = glCanvas.width / Math.max(glCanvas.clientWidth, 1);
+      const scaleY = glCanvas.height / Math.max(glCanvas.clientHeight, 1);
+      const drawDot = (lng: number, lat: number, color: string) => {
+        const point = map.project([lng, lat]);
+        const x = point.x * scaleX;
+        const y = point.y * scaleY;
+        const radius = 7 * scaleX;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.lineWidth = 2 * scaleX;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+      };
+      drawDot(endpoints.startLon, endpoints.startLat, '#22c55e');
+      drawDot(endpoints.endLon, endpoints.endLat, '#ef4444');
+    }
+    return shot.toDataURL('image/png');
+  }, [endpoints]);
+
   const savePoster = useCallback(
     async (event: React.MouseEvent) => {
       event.stopPropagation();
@@ -180,27 +221,43 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
       setSaving(true);
       setSaveHint('正在生成图片…');
       const mapWrap = poster.querySelector('[data-map-wrap]') as HTMLElement | null;
-      const map = mapRef.current?.getMap?.();
+      const mapEl = mapWrap?.querySelector('.mapboxgl-map') as HTMLElement | null;
       let overlay: HTMLImageElement | null = null;
+      const previousVisibility = mapEl?.style.visibility;
       try {
-        if (map && mapWrap) {
+        const mapUrl = await snapshotMap();
+        if (mapUrl && mapWrap) {
           overlay = document.createElement('img');
-          overlay.src = map.getCanvas().toDataURL('image/png');
+          overlay.src = mapUrl;
           overlay.alt = '';
+          overlay.setAttribute('data-map-shot', '1');
           overlay.style.cssText =
-            'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:6;';
+            'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:8;';
           mapWrap.appendChild(overlay);
-          if (!overlay.complete) {
-            await new Promise<void>((resolve, reject) => {
-              overlay!.onload = () => resolve();
-              overlay!.onerror = () => reject(new Error('map snapshot failed'));
-            });
+          await new Promise<void>((resolve, reject) => {
+            if (overlay!.complete) {
+              resolve();
+              return;
+            }
+            overlay!.onload = () => resolve();
+            overlay!.onerror = () => reject(new Error('map snapshot failed'));
+          });
+          if (mapEl) {
+            mapEl.style.visibility = 'hidden';
           }
         }
+        await document.fonts?.ready;
+        await new Promise((resolve) => window.setTimeout(resolve, 40));
         const blob = await toBlob(poster, {
           pixelRatio: Math.min(window.devicePixelRatio || 2, 3),
           cacheBust: true,
           backgroundColor: '#101217',
+          filter: (node) => {
+            if (!(node instanceof HTMLElement)) {
+              return true;
+            }
+            return !node.classList.contains('mapboxgl-map');
+          },
         });
         if (!blob) {
           throw new Error('empty image');
@@ -231,11 +288,14 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
           setSaveHint('保存失败，请再试一次');
         }
       } finally {
+        if (mapEl) {
+          mapEl.style.visibility = previousVisibility || '';
+        }
         overlay?.remove();
         setSaving(false);
       }
     },
-    [date, saving, siteTitle]
+    [date, saving, siteTitle, snapshotMap]
   );
 
   const fitRoute = useCallback(() => {
@@ -313,7 +373,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
               onLoad={fitRoute}
               mapStyle="mapbox://styles/mapbox/dark-v11"
               mapboxAccessToken={MAPBOX_TOKEN}
-              preserveDrawingBuffer
+              preserveDrawingBuffer={true}
               attributionControl={false}
               dragPan={false}
               scrollZoom={false}
