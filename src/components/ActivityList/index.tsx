@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import activities from '@/static/activities.json';
 import styles from './style.module.css';
 import { ACTIVITY_TOTAL } from "@/utils/const";
-import { Activity as RunActivity, formatPace, formatRunPlace } from '@/utils/utils';
+import { Activity as RunActivity, formatRunPlace } from '@/utils/utils';
 import { totalStat } from '@assets/index';
 import { loadSvgComponent } from '@/utils/svgUtils';
 import DaySharePoster from '@/components/DaySharePoster';
@@ -148,20 +148,20 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ period, summary, dailyDista
                     <div className={styles.chart} style={{ height: '250px', width: '100%' }}>
                         <ResponsiveContainer>
                             <BarChart data={data} margin={{ top: 20, right: 20, left: -20, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                                <XAxis dataKey="day" tick={{ fill: 'rgb(204, 204, 204)' }} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(235, 240, 225, 0.1)" />
+                                <XAxis dataKey="day" tick={{ fill: '#8b938a', fontSize: 10 }} />
                                 <YAxis
-                                    label={{ value: 'km', angle: -90, position: 'insideLeft', fill: 'rgb(204, 204, 204)' }}
+                                    label={{ value: 'km', angle: -90, position: 'insideLeft', fill: '#8b938a' }}
                                     domain={[0, yAxisMax]}
                                     ticks={yAxisTicks}
-                                    tick={{ fill: 'rgb(204, 204, 204)' }}
+                                    tick={{ fill: '#8b938a', fontSize: 10 }}
                                 />
                                 <Tooltip
                                     formatter={(value) => `${value} km`}
-                                    contentStyle={{ backgroundColor: 'rgb(36, 36, 36)', border: '1px solid #444', color: 'rgb(204, 204, 204)' }}
-                                    labelStyle={{ color: '#FF6B9D' }}
+                                    contentStyle={{ backgroundColor: '#171a17', border: '1px solid rgba(235, 240, 225, 0.18)', borderRadius: '6px', color: '#f1f3e9', fontSize: '11px' }}
+                                    labelStyle={{ color: '#d6ff64' }}
                                 />
-                                <Bar dataKey="distance" fill="#FF6B9D" />
+                                <Bar dataKey="distance" fill="#d6ff64" radius={[3, 3, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -203,7 +203,7 @@ const ActivityList: React.FC = () => {
                     key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`; // Zero padding
                     index = date.getDate() - 1; // Return current day (0-30)
                     break;
-                case 'week':
+                case 'week': {
                     const currentDate = new Date(date.valueOf());
                     currentDate.setDate(currentDate.getDate() + 4 - (currentDate.getDay() || 7)); // Set to nearest Thursday (ISO weeks defined by Thursday)
                     const yearStart = new Date(currentDate.getFullYear(), 0, 1);
@@ -211,6 +211,7 @@ const ActivityList: React.FC = () => {
                     key = `${currentDate.getFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
                     index = (date.getDay() + 6) % 7; // Return current day (0-6, Monday-Sunday)
                     break;
+                }
                 case 'day':
                     key = activity.start_date_local.slice(0, 10);
                     index = 0; // Return 0

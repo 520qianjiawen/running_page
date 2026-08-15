@@ -168,7 +168,8 @@ const RunMap = ({
   }, []);
   const style: React.CSSProperties = {
     width: '100%',
-    height: MAP_HEIGHT,
+    height: '100%',
+    minHeight: MAP_HEIGHT > 0 ? 320 : undefined,
   };
   const fullscreenButton: React.CSSProperties = {
     position: 'absolute',

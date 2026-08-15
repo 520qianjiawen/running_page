@@ -16,7 +16,13 @@ const YearsStat = ({
 
   return (
     <aside className="panel">
-      <div className="panel-title">年度</div>
+      <div className="inspector-heading">
+        <span className="section-number">02</span>
+        <div>
+          <div className="panel-title">年度切片</div>
+          <strong>{year === 'Total' ? '完整跑步档案' : `${year} 年度报告`}</strong>
+        </div>
+      </div>
       <p className="intro-text mb-4">{INFO_MESSAGE(years.length, year)}</p>
       {yearsArrayUpdate.map((item) => (
         <YearStat

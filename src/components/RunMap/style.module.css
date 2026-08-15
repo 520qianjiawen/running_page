@@ -9,13 +9,15 @@
 
 .buttons {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 24px;
+  right: 62px;
+  left: 278px;
   margin: 0;
-  padding-right: 72px;
+  padding: 0;
   z-index: 10;
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 6px;
 }
 
@@ -24,42 +26,44 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 0.28rem 0.65rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
+  min-height: 26px;
+  padding: 0.2rem 0.52rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.05em;
   text-align: center;
-  color: #ece8e1;
-  font-weight: 600;
+  color: #8b938a;
+  font-weight: 720;
   transition: all 0.2s ease;
-  border-radius: 999px;
-  background: rgba(12, 13, 16, 0.58);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  background: rgba(11, 13, 12, 0.62);
+  border: 1px solid rgba(235, 240, 225, 0.13);
   backdrop-filter: blur(12px);
 }
 
 .button:hover {
-  color: #ff6b9d;
-  border-color: rgba(255, 107, 157, 0.45);
-  background: rgba(12, 13, 16, 0.78);
+  color: #d6ff64;
+  border-color: rgba(214, 255, 100, 0.42);
+  background: rgba(11, 13, 12, 0.82);
 }
 
 .selected {
-  color: #1a0d12;
-  background: #ff6b9d;
-  border-color: #ff6b9d;
+  color: #0b0d0c;
+  background: #d6ff64;
+  border-color: #d6ff64;
 }
 
 .runTitle {
   max-width: calc(100% - 160px);
   position: absolute;
+  right: 58px;
   bottom: 12px;
-  left: 16px;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  background: rgba(12, 13, 16, 0.55);
+  left: auto;
+  padding: 0.25rem 0.55rem;
+  border-radius: 5px;
+  background: rgba(11, 13, 12, 0.62);
   backdrop-filter: blur(10px);
-  color: #f4f1ea;
-  font-size: 0.82rem;
+  color: #f1f3e9;
+  font-size: 0.62rem;
 }
 
 .lights {
@@ -98,31 +102,43 @@
 
 @keyframes lightsOnGlow {
   0%, 100% {
-    filter: drop-shadow(0 0 3px rgba(255, 107, 157, 0.4));
+    filter: drop-shadow(0 0 3px rgba(214, 255, 100, 0.4));
   }
   50% {
-    filter: drop-shadow(0 0 8px rgba(255, 107, 157, 0.7));
+    filter: drop-shadow(0 0 8px rgba(214, 255, 100, 0.7));
   }
+}
+
+.lightsOn {
+  position: relative;
+  background-image: none;
+}
+
+.lightsOn::before {
+  content: '✦';
+  color: #d6ff64;
+  font-size: 19px;
+  line-height: 1;
 }
 
 /* 移动端响应式设计 */
 @media (max-width: 768px) {
   .buttons {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    padding-right: 50px;
+    top: 14px;
+    right: 48px;
+    left: 14px;
   }
 
   .button {
-    padding: 0.26rem 0.5rem;
-    font-size: 0.72rem;
+    padding: 0.18rem 0.42rem;
+    font-size: 0.54rem;
   }
 
   .runTitle {
-    max-width: calc(100% - 24px);
-    left: 12px;
-    font-size: 0.78rem;
+    max-width: calc(100% - 82px);
+    right: 48px;
+    left: auto;
+    font-size: 0.58rem;
   }
 
   .lights {
@@ -134,27 +150,25 @@
 
 @media (max-width: 480px) {
   .buttons {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    padding-right: 40px;
+    top: 10px;
+    right: 42px;
+    left: 10px;
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    width: calc(100% - 60px);
   }
 
   .button {
-    padding: 0.22rem 0.42rem;
-    font-size: 0.68rem;
-    flex: 1;
-    min-width: 44px;
+    min-height: 23px;
+    padding: 0.14rem 0.35rem;
+    font-size: 0.5rem;
   }
 
   .runTitle {
-    max-width: calc(100% - 20px);
-    left: 10px;
-    font-size: 0.72rem;
+    max-width: calc(100% - 72px);
+    right: 42px;
+    left: auto;
+    font-size: 0.54rem;
     bottom: 8px;
   }
 

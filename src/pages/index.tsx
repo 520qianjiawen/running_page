@@ -171,7 +171,6 @@ const Index = () => {
 
   return (
     <Layout>
-      <OverviewHero selectedYear={year} />
       <div className="home-grid">
         {(viewState.zoom ?? 0) <= 3 && IS_CHINESE ? (
           <LocationStat
@@ -183,16 +182,27 @@ const Index = () => {
           <YearsStat year={year} onClick={changeYear} />
         )}
         <div className="map-column">
-          <div className="map-shell" id="run-map">
-            <RunMap
-              title={title}
-              viewState={viewState}
-              geoData={geoData}
-              setViewState={setViewState}
-              changeYear={changeYear}
-              thisYear={year}
-            />
-          </div>
+          <section className="route-stage">
+            <div className="map-shell" id="run-map">
+              <RunMap
+                title={title}
+                viewState={viewState}
+                geoData={geoData}
+                setViewState={setViewState}
+                changeYear={changeYear}
+                thisYear={year}
+              />
+            </div>
+            <OverviewHero selectedYear={year} />
+            <div className="route-scale" aria-hidden="true">
+              <span>RUNNING HEATMAP</span>
+              <i />
+              <small>{year === 'Total' ? 'ALL YEARS' : year}</small>
+            </div>
+            <div className="stage-signature" aria-hidden="true">
+              RUN / ARCHIVE <span>001</span>
+            </div>
+          </section>
           {year === 'Total' ? (
             <SVGStat />
           ) : (

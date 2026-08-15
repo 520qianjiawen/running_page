@@ -37,30 +37,30 @@ const OverviewHero = ({ selectedYear }: { selectedYear: string }) => {
     <section className="hero">
       <div className="hero-copy">
         <div className="hero-kicker">
-          Since {years[years.length - 1] || '2020'} · {stats.yearCount} 年
+          RUNNING JOURNAL · SINCE {years[years.length - 1] || '2020'}
         </div>
         <h1>{siteTitle}</h1>
         <p>
-          用脚步把城市点亮。不要停下来，不要停下奔跑的脚步。
-          下面是这些年留下的轨迹、配速和连续出勤。
+          用脚步把城市点亮。这里收录了 {stats.yearCount} 年间留下的路线、
+          配速与连续出勤。
         </p>
       </div>
       <div className="hero-metrics">
         <article className="metric-card">
           <div className="metric-label">总里程</div>
-          <div className="metric-value">{stats.totalKm}</div>
+          <div className="metric-value">{stats.totalKm}<small>KM</small></div>
         </article>
         <article className="metric-card">
           <div className="metric-label">活动次数</div>
-          <div className="metric-value">{stats.count}</div>
+          <div className="metric-value">{stats.count}<small>次</small></div>
         </article>
         <article className="metric-card">
           <div className="metric-label">最长连续</div>
-          <div className="metric-value">{stats.streak}天</div>
+          <div className="metric-value">{stats.streak}<small>天</small></div>
         </article>
         <article className="metric-card">
           <div className="metric-label">{stats.focusYear} 里程</div>
-          <div className="metric-value">{stats.yearKm}</div>
+          <div className="metric-value">{stats.yearKm}<small>KM</small></div>
         </article>
       </div>
     </section>

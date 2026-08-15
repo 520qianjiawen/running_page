@@ -1,7 +1,10 @@
 .activityList {
-  padding: 0 0 20px;
-  background-color: transparent;
-  color: #f4f1ea;
+  min-height: calc(100vh - 76px);
+  padding: 28px;
+  background:
+    linear-gradient(180deg, rgba(214, 255, 100, 0.025), transparent 220px),
+    #0b0d0c;
+  color: #f1f3e9;
 }
 
 .filterContainer {
@@ -11,35 +14,50 @@
   margin-bottom: 20px;
 }
 
+.filterContainer::before {
+  content: 'STATISTICS / PERIOD';
+  display: inline-flex;
+  align-items: center;
+  margin-right: auto;
+  color: #8b938a;
+  font-size: 0.58rem;
+  font-weight: 780;
+  letter-spacing: 0.16em;
+}
+
 .filterContainer select {
-  padding: 10px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(244, 241, 234, 0.1);
-  background-color: rgba(20, 22, 27, 0.78);
-  color: #f4f1ea;
+  height: 36px;
+  min-width: 126px;
+  padding: 0 34px 0 12px;
+  border: 1px solid rgba(235, 240, 225, 0.13);
+  border-radius: 6px;
+  background-color: #171a17;
+  color: #f1f3e9;
   cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 680;
 }
 
 .summaryContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .activityCard {
-  background-color: rgba(20, 22, 27, 0.78);
-  border: 1px solid rgba(244, 241, 234, 0.1);
-  border-radius: 18px;
+  min-width: 0;
   padding: 16px;
-  width: 280px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
-  transition: transform 0.2s;
+  border: 1px solid rgba(235, 240, 225, 0.13);
+  border-radius: 8px;
+  background: #111411;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.2);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
 }
 
 .activityCard:hover {
-  transform: translateY(-5px);
-  background-color: lighten(rgb(26, 26, 26), 3%);
+  border-color: rgba(235, 240, 225, 0.25);
+  background: #141814;
+  transform: translateY(-2px);
 }
 
 .clickable {
@@ -47,125 +65,113 @@
 }
 
 .clickable:hover {
-  border-color: rgba(255, 107, 157, 0.45);
+  border-color: rgba(214, 255, 100, 0.42);
 }
 
 .activityName {
-  font-size: 1.5em;
-  margin-bottom: 10px;
-  color: #f4f1ea;
-  font-family: var(--font);
+  margin: 0 0 13px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid rgba(235, 240, 225, 0.1);
+  color: #f1f3e9;
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 730;
+  letter-spacing: -0.03em;
 }
 
 .activityDetails p {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
   margin: 8px 0;
-  color: rgb(204, 204, 204);
+  color: #d7dbd1;
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .activityDetails strong {
-  color: #FF6B9D;
+  color: #8b938a;
+  font-size: 0.58rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
 }
 
 .cardHint {
-  margin-top: 10px !important;
-  color: #8d8b86 !important;
-  font-size: 0.78rem;
+  justify-content: flex-end !important;
+  margin-top: 13px !important;
+  color: #d6ff64 !important;
+  font-size: 0.58rem !important;
+  font-weight: 720;
+  letter-spacing: 0.08em;
 }
 
 .chart {
-  height: 100px;
-  background-color: rgb(46, 46, 46);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 10px;
-  color: rgb(204, 204, 204);
+  height: 250px;
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(235, 240, 225, 0.1);
+  background: transparent;
+  color: #8b938a;
 }
 
 .smallHomeButton {
-    padding: 4px 12px;
-    background-color: #FF6B9D;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    margin-right: 20px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #d6ff64;
+  border-radius: 5px;
+  background: #d6ff64;
+  color: #0b0d0c;
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 720;
 }
 
 .smallHomeButton:hover {
-    background-color: rgb(204, 217, 74);
+  background: #e2ff91;
 }
 
 .lifeContainer {
   display: flex;
   justify-content: center;
+  padding: 20px;
+  border: 1px solid rgba(235, 240, 225, 0.13);
+  border-radius: 8px;
+  background: #111411;
 }
 
-/* 移动端响应式设计 */
-@media (max-width: 768px) {
-  .activityList {
-    padding: 12px;
-  }
-
+@media (max-width: 1060px) {
   .summaryContainer {
-    gap: 12px;
-  }
-
-  .activityCard {
-    width: calc(50% - 6px);
-    padding: 12px;
-  }
-
-  .activityName {
-    font-size: 1.2em;
-  }
-
-  .activityDetails p {
-    font-size: 0.9em;
-    margin: 6px 0;
-  }
-
-  .chart {
-    height: 80px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 720px) {
   .activityList {
-    padding: 8px;
+    min-height: calc(100vh - 64px);
+    padding: 18px;
+  }
+
+  .filterContainer::before {
+    font-size: 0.5rem;
   }
 
   .summaryContainer {
-    gap: 8px;
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .activityCard {
-    width: 100%;
-    padding: 10px;
+    padding: 14px;
   }
+}
 
-  .activityName {
-    font-size: 1em;
-  }
-
-  .activityDetails p {
-    font-size: 0.85em;
-    margin: 4px 0;
-  }
-
-  .chart {
-    height: 60px;
-  }
-
+@media (max-width: 420px) {
   .filterContainer {
-    gap: 8px;
-    flex-wrap: wrap;
+    align-items: stretch;
+    flex-direction: column;
   }
 
-  .filterContainer select {
-    flex: 1;
-    min-width: 100px;
+  .filterContainer::before {
+    min-height: 24px;
   }
 }

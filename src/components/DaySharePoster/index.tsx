@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { toCanvas } from 'html-to-image';
 import * as mapboxPolyline from '@mapbox/polyline';
 import Map, { Layer, MapRef, Source } from 'react-map-gl';
@@ -21,6 +21,11 @@ interface DaySharePosterProps {
   date: string;
   runs: Activity[];
   onClose: () => void;
+}
+
+interface SharePayload {
+  files?: File[];
+  title?: string;
 }
 
 const weekdayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
@@ -103,7 +108,7 @@ const drawExportedRoute = (
   ctx.lineWidth = Math.max(3.5, width / 110);
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
-  ctx.shadowColor = 'rgba(255, 107, 157, 0.45)';
+  ctx.shadowColor = 'rgba(214, 255, 100, 0.45)';
   ctx.shadowBlur = 8;
   for (const line of lines) {
     if (line.length < 2) {
@@ -177,7 +182,7 @@ const loadStaticMapImage = async (
     const overlay = [
       `pin-s+22c55e(${start[0]},${start[1]})`,
       `pin-s+ef4444(${end[0]},${end[1]})`,
-      `path-5+ff6b9d-1(${encoded})`,
+      `path-5+d6ff64-1(${encoded})`,
     ].join(',');
     return (
       `https://api.mapbox.com/styles/v1/mapbox/light-v11/static/${overlay}/auto/${w}x${h}@2x` +
@@ -334,7 +339,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
   const mapRef = useRef<MapRef>(null);
 
   const savePoster = useCallback(
-    async (event: React.MouseEvent) => {
+    async (event: MouseEvent) => {
       event.stopPropagation();
       const poster = posterRef.current;
       if (!poster || saving) {
@@ -354,7 +359,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
         const htmlCanvas = await toCanvas(poster, {
           pixelRatio,
           cacheBust: true,
-          backgroundColor: '#101217',
+          backgroundColor: '#111411',
           filter: (node) => {
             if (!(node instanceof HTMLElement)) {
               return true;
@@ -402,7 +407,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
         }
         const file = new File([blob], `大猫跑步-${date}.png`, { type: 'image/png' });
         const nav = navigator as Navigator & {
-          canShare?: (data: ShareData) => boolean;
+          canShare?: (_data: SharePayload) => boolean;
         };
         if (nav.share && nav.canShare?.({ files: [file] })) {
           await nav.share({

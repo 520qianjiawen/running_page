@@ -150,26 +150,26 @@ export {
   ACTIVITY_TOTAL
 };
 
-const nike = '#FF6B9D'; // Modern vibrant pink
+const routeAccent = '#D6FF64';
 // If your map has an offset please change this line
 // issues #92 and #198
 export const NEED_FIX_MAP = false;
-export const MAIN_COLOR = nike;
+export const MAIN_COLOR = routeAccent;
 
 // Modern vibrant color scheme for map styling
-export const PROVINCE_FILL_COLOR = '#FF6B6B'; // Vibrant red
-export const COUNTRY_FILL_COLOR = '#4ECDC4'; // Teal
+export const PROVINCE_FILL_COLOR = '#6F8B63';
+export const COUNTRY_FILL_COLOR = '#3F6F68';
 
 // Activity type colors with modern vibrancy
-export const RUN_COLOR = '#FF6B9D'; // Vibrant pink
-export const RUN_TRAIL_COLOR = '#C44569'; // Deep coral
-export const CYCLING_COLOR = '#00D9FF'; // Cyan
-export const HIKING_COLOR = '#A0FF00'; // Lime
-export const WALKING_COLOR = '#FF9500'; // Orange
-export const SWIMMING_COLOR = '#FF006E'; // Hot pink
+export const RUN_COLOR = '#D6FF64';
+export const RUN_TRAIL_COLOR = '#FFB454';
+export const CYCLING_COLOR = '#78D3C5';
+export const HIKING_COLOR = '#A8D95F';
+export const WALKING_COLOR = '#F0C36A';
+export const SWIMMING_COLOR = '#48A6C8';
 
 // Additional colors for animations and effects
-export const GLOW_COLOR_PRIMARY = '#FF6B9D';
-export const GLOW_COLOR_SECONDARY = '#00D9FF';
-export const GRADIENT_START = '#FF6B9D';
-export const GRADIENT_END = '#A0FF00';
+export const GLOW_COLOR_PRIMARY = '#D6FF64';
+export const GLOW_COLOR_SECONDARY = '#78D3C5';
+export const GRADIENT_START = '#78D3C5';
+export const GRADIENT_END = '#D6FF64';

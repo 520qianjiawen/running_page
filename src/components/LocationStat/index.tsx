@@ -19,7 +19,13 @@ const LocationStat = ({
   changeTitle,
 }: ILocationStatProps) => (
   <aside className="panel">
-    <div className="panel-title">足迹</div>
+    <div className="inspector-heading">
+      <span className="section-number">01</span>
+      <div>
+        <div className="panel-title">足迹概览</div>
+        <strong>这些年跑过的地方</strong>
+      </div>
+    </div>
     <p className="intro-text mb-4">
       {CHINESE_LOCATION_INFO_MESSAGE_FIRST}。
       <br />
@@ -28,7 +34,7 @@ const LocationStat = ({
     <LocationSummary />
     <CitiesStat onClick={changeCity} />
     <PeriodStat onClick={changeTitle} />
-    <div className="panel-title mt-5">全部年份</div>
+    <div className="panel-title inspector-divider mt-5">全部年份</div>
     <YearStat year="Total" onClick={changeYear} />
   </aside>
 );
