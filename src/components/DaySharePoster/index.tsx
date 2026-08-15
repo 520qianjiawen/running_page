@@ -185,7 +185,7 @@ const loadStaticMapImage = async (
       `path-5+d6ff64-1(${encoded})`,
     ].join(',');
     return (
-      `https://api.mapbox.com/styles/v1/mapbox/light-v11/static/${overlay}/auto/${w}x${h}@2x` +
+      `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${overlay}/auto/${w}x${h}@2x` +
       `?padding=48&logo=false&attribution=false&access_token=${MAPBOX_TOKEN}`
     );
   };
@@ -199,15 +199,18 @@ const loadStaticMapImage = async (
     return null;
   }
   const blob = await response.blob();
-  const objectUrl = URL.createObjectURL(blob);
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('static map conversion failed'));
+    reader.readAsDataURL(blob);
+  });
   const image = new Image();
-  image.crossOrigin = 'anonymous';
   await new Promise<void>((resolve, reject) => {
     image.onload = () => resolve();
     image.onerror = () => reject(new Error('static map failed'));
-    image.src = objectUrl;
+    image.src = dataUrl;
   });
-  URL.revokeObjectURL(objectUrl);
   return image;
 };
 
@@ -350,9 +353,50 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
       const mapWrap = poster.querySelector('[data-map-wrap]') as HTMLElement | null;
       const mapEl = mapWrap?.querySelector('.mapboxgl-map') as HTMLElement | null;
       const previousVisibility = mapEl?.style.visibility;
+      let exportMapLayer: HTMLElement | null = null;
       try {
         if (mapEl) {
           mapEl.style.visibility = 'hidden';
+        }
+        if (mapWrap && routeBounds) {
+          const lines = geoData.features
+            .map((feature) => feature.geometry.coordinates as Coordinate[])
+            .filter((coords) => coords.length > 1);
+          if (lines.length) {
+            try {
+              const staticMap = await loadStaticMapImage(
+                lines,
+                mapWrap.clientWidth * 2,
+                mapWrap.clientHeight * 2
+              );
+              if (staticMap) {
+                staticMap.alt = '';
+                staticMap.className = styles.exportMap;
+                exportMapLayer = staticMap;
+              }
+            } catch {
+              const fallback = document.createElement('canvas');
+              fallback.width = Math.max(480, mapWrap.clientWidth * 2);
+              fallback.height = Math.max(480, mapWrap.clientHeight * 2);
+              fallback.className = styles.exportMap;
+              const context = fallback.getContext('2d');
+              if (context) {
+                drawExportedRoute(
+                  context,
+                  lines,
+                  routeBounds,
+                  0,
+                  0,
+                  fallback.width,
+                  fallback.height
+                );
+                exportMapLayer = fallback;
+              }
+            }
+            if (exportMapLayer) {
+              mapWrap.prepend(exportMapLayer);
+            }
+          }
         }
         await document.fonts?.ready;
         const pixelRatio = Math.min(window.devicePixelRatio || 2, 2);
@@ -367,38 +411,6 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
             return !node.classList.contains('mapboxgl-map');
           },
         });
-        const ctx = htmlCanvas.getContext('2d');
-        if (ctx && mapWrap && routeBounds) {
-          const posterBox = poster.getBoundingClientRect();
-          const mapBox = mapWrap.getBoundingClientRect();
-          const scale = htmlCanvas.width / posterBox.width;
-          const x = (mapBox.left - posterBox.left) * scale;
-          const y = (mapBox.top - posterBox.top) * scale;
-          const width = mapBox.width * scale;
-          const height = mapBox.height * scale;
-          const lines = geoData.features
-            .map((feature) => feature.geometry.coordinates as Coordinate[])
-            .filter((coords) => coords.length > 1);
-          if (lines.length) {
-            ctx.save();
-            clipRoundRect(ctx, x, y, width, height, 18 * scale);
-            try {
-              const staticMap = await loadStaticMapImage(
-                lines,
-                mapBox.width * 2,
-                mapBox.height * 2
-              );
-              if (staticMap) {
-                ctx.drawImage(staticMap, x, y, width, height);
-              } else {
-                drawExportedRoute(ctx, lines, routeBounds, x, y, width, height);
-              }
-            } catch {
-              drawExportedRoute(ctx, lines, routeBounds, x, y, width, height);
-            }
-            ctx.restore();
-          }
-        }
         const blob = await new Promise<Blob | null>((resolve) =>
           htmlCanvas.toBlob(resolve, 'image/png')
         );
@@ -431,6 +443,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
           setSaveHint('保存失败，请再试一次');
         }
       } finally {
+        exportMapLayer?.remove();
         if (mapEl) {
           mapEl.style.visibility = previousVisibility || '';
         }
@@ -447,7 +460,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
     }
     map.resize();
     map.fitBounds(routeBounds, {
-      padding: 40,
+      padding: 56,
       duration: 0,
       maxZoom: 14,
     });
@@ -480,112 +493,130 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
         className={styles.poster}
         onClick={(event) => event.stopPropagation()}
       >
-        <header className={styles.header}>
-          <span className={styles.brand}>{siteTitle}</span>
-          <span className={styles.date}>
-            {stats.prettyDate} {stats.weekday}
-          </span>
-          {(stats.location || temperature !== null) && (
-            <span className={styles.place}>
-              {[
-                stats.location,
-                temperature !== null ? `${Math.round(temperature)}°C` : '',
-              ]
+        <section className={styles.visualStage}>
+          <div className={styles.mapWrap} data-map-wrap>
+            {hasRoute ? (
+              <Map
+                ref={mapRef}
+                initialViewState={{
+                  longitude: routeBounds
+                    ? (routeBounds[0][0] + routeBounds[1][0]) / 2
+                    : 120.63,
+                  latitude: routeBounds
+                    ? (routeBounds[0][1] + routeBounds[1][1]) / 2
+                    : 31.79,
+                  zoom: 12,
+                  bounds: routeBounds ?? undefined,
+                  fitBoundsOptions: { padding: 56, maxZoom: 14 },
+                }}
+                onLoad={fitRoute}
+                mapStyle="mapbox://styles/mapbox/dark-v11"
+                mapboxAccessToken={MAPBOX_TOKEN}
+                preserveDrawingBuffer={true}
+                attributionControl={false}
+                dragPan={false}
+                scrollZoom={false}
+                doubleClickZoom={false}
+                touchZoomRotate={false}
+                style={{ width: '100%', height: '100%' }}
+              >
+                <Source id="day-run" type="geojson" data={geoData}>
+                  <Layer
+                    id="day-run-glow"
+                    type="line"
+                    paint={{
+                      'line-color': RUN_COLOR,
+                      'line-width': 10,
+                      'line-blur': 8,
+                      'line-opacity': 0.32,
+                    }}
+                    layout={{ 'line-join': 'round', 'line-cap': 'round' }}
+                  />
+                  <Layer
+                    id="day-run-line"
+                    type="line"
+                    paint={{
+                      'line-color': RUN_COLOR,
+                      'line-width': 3.6,
+                      'line-opacity': 1,
+                    }}
+                    layout={{ 'line-join': 'round', 'line-cap': 'round' }}
+                  />
+                </Source>
+                {endpoints && <RunMarker {...endpoints} />}
+              </Map>
+            ) : (
+              <div className={styles.mapEmpty}>这条记录没有轨迹</div>
+            )}
+          </div>
+          <div className={styles.stageShade} />
+          <div className={styles.stageGrain} />
+
+          <header className={styles.header}>
+            <span className={styles.brandMark} aria-hidden="true">
+              <svg viewBox="0 0 32 32">
+                <path d="M7 22.5c4.5-1.2 5.4-8.6 10.2-9.7 3.1-.7 4.5 2.5 7.8 1.1" />
+                <circle cx="7" cy="22.5" r="2.1" />
+                <circle cx="25" cy="13.9" r="2.1" />
+              </svg>
+            </span>
+            <span className={styles.brandCopy}>
+              <strong>{siteTitle}</strong>
+              <small>DAILY RUN STORY</small>
+            </span>
+            <span className={styles.date}>{stats.prettyDate}</span>
+          </header>
+
+          <div className={styles.stageCopy}>
+            <span>DAILY RUN · {stats.weekday}</span>
+            <h2>今天，跑了<br />{stats.km.toFixed(2)} 公里</h2>
+            <p>
+              {[stats.location || '跑步轨迹', stats.start || '', temperature !== null ? `${Math.round(temperature)}°C` : '']
                 .filter(Boolean)
                 .join(' · ')}
-            </span>
-          )}
-        </header>
+            </p>
+          </div>
 
-        <div className={styles.mapWrap} data-map-wrap>
-          {hasRoute ? (
-            <Map
-              ref={mapRef}
-              initialViewState={{
-                longitude: routeBounds
-                  ? (routeBounds[0][0] + routeBounds[1][0]) / 2
-                  : 120.63,
-                latitude: routeBounds
-                  ? (routeBounds[0][1] + routeBounds[1][1]) / 2
-                  : 31.79,
-                zoom: 12,
-                bounds: routeBounds ?? undefined,
-                fitBoundsOptions: { padding: 40, maxZoom: 14 },
-              }}
-              onLoad={fitRoute}
-              mapStyle="mapbox://styles/mapbox/light-v11"
-              mapboxAccessToken={MAPBOX_TOKEN}
-              preserveDrawingBuffer={true}
-              attributionControl={false}
-              dragPan={false}
-              scrollZoom={false}
-              doubleClickZoom={false}
-              touchZoomRotate={false}
-              style={{ width: '100%', height: '100%' }}
-            >
-              <Source id="day-run" type="geojson" data={geoData}>
-                <Layer
-                  id="day-run-glow"
-                  type="line"
-                  paint={{
-                    'line-color': RUN_COLOR,
-                    'line-width': 8,
-                    'line-blur': 6,
-                    'line-opacity': 0.35,
-                  }}
-                  layout={{ 'line-join': 'round', 'line-cap': 'round' }}
-                />
-                <Layer
-                  id="day-run-line"
-                  type="line"
-                  paint={{
-                    'line-color': RUN_COLOR,
-                    'line-width': 3.4,
-                    'line-opacity': 1,
-                  }}
-                  layout={{ 'line-join': 'round', 'line-cap': 'round' }}
-                />
-              </Source>
-              {endpoints && <RunMarker {...endpoints} />}
-            </Map>
-          ) : (
-            <div className={styles.mapEmpty}>这条记录没有轨迹</div>
-          )}
-        </div>
+          <div className={styles.routeLegend} aria-hidden="true">
+            <span>ROUTE TRACE</span>
+            <i />
+            <small>{String(stats.count).padStart(2, '0')} RUN</small>
+          </div>
+          <div className={styles.stageSignature} aria-hidden="true">
+            RUN / LOG <span>{date.slice(0, 4)}</span>
+          </div>
+        </section>
 
-        <div className={styles.heroStat}>
-          <strong>{stats.km.toFixed(2)}</strong>
-          <span>公里</span>
-        </div>
+        <section className={styles.summary}>
+          <div className={styles.summaryHeading}>
+            <span>01</span>
+            <div>
+              <small>本次跑步</small>
+              <h3>{stats.location || '每日跑步记录'}</h3>
+            </div>
+            <em>COMPLETED</em>
+          </div>
 
-        <div className={styles.grid}>
-          <div>
-            <em>配速</em>
-            <b>{stats.pace}</b>
+          <div className={styles.heroStat}>
+            <strong>{stats.km.toFixed(2)}</strong>
+            <span>公里</span>
+            <small>{stats.count > 1 ? `${stats.count} 段轨迹汇总` : '当日跑步里程'}</small>
           </div>
-          <div>
-            <em>用时</em>
-            <b>{formatClock(stats.seconds)}</b>
-          </div>
-          <div>
-            <em>心率</em>
-            <b>{stats.heartrate ? `${stats.heartrate}` : '--'}</b>
-          </div>
-          <div>
-            <em>开始</em>
-            <b>{stats.start || '--'}</b>
-          </div>
-          <div>
-            <em>气温</em>
-            <b>{temperature !== null ? `${Math.round(temperature)}°` : '--'}</b>
-          </div>
-          <div>
-            <em>最快1公里</em>
-            <b>{stats.best1k ? formatPace(1000 / stats.best1k) : '--'}</b>
-          </div>
-        </div>
 
-        <footer className={styles.footer}>{siteUrl.replace(/^https?:\/\//, '')}</footer>
+          <div className={styles.grid}>
+            <div><em>平均配速</em><b>{stats.pace}</b></div>
+            <div><em>移动时间</em><b>{formatClock(stats.seconds)}</b></div>
+            <div><em>平均心率</em><b>{stats.heartrate ? `${stats.heartrate} bpm` : '未记录'}</b></div>
+            <div><em>累计爬升</em><b>{stats.elevation ? `${Math.round(stats.elevation)} m` : '未记录'}</b></div>
+            <div><em>环境气温</em><b>{temperature !== null ? `${Math.round(temperature)}°C` : '未记录'}</b></div>
+            <div><em>最快 1 公里</em><b>{stats.best1k ? formatPace(1000 / stats.best1k) : '未记录'}</b></div>
+          </div>
+
+          <footer className={styles.footer}>
+            <span>PRIVATE RUN ARCHIVE</span>
+            <span>{siteUrl.replace(/^https?:\/\//, '')}</span>
+          </footer>
+        </section>
       </article>
       <div className={styles.actions} onClick={(event) => event.stopPropagation()}>
         <button
