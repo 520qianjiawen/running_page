@@ -39,7 +39,9 @@
   overflow: hidden;
   border: 1px solid rgba(235, 240, 225, 0.15);
   border-radius: 10px;
-  background: #0b0d0c;
+  background:
+    radial-gradient(circle at 20% 82%, rgba(214, 255, 100, 0.055), transparent 34%),
+    #0b0d0c;
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.56);
   color: #f1f3e9;
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display",
@@ -52,6 +54,7 @@
   flex: 1 1 auto;
   overflow: hidden;
   isolation: isolate;
+  border-bottom: 1px solid rgba(235, 240, 225, 0.12);
   background: #080a09;
 }
 
@@ -177,46 +180,10 @@
   letter-spacing: 0.1em;
 }
 
-.stageCopy {
-  position: absolute;
-  top: 76px;
-  left: 20px;
-  z-index: 3;
-  max-width: 78%;
-  text-shadow: 0 3px 24px rgba(0, 0, 0, 0.74);
-}
-
-.stageCopy > span {
-  color: #d6ff64;
-  font-size: 0.43rem;
-  font-weight: 820;
-  letter-spacing: 0.19em;
-}
-
-.stageCopy h2 {
-  margin: 7px 0 7px;
-  color: #f1f3e9;
-  font-size: clamp(1.45rem, 7vw, 2.1rem);
-  font-weight: 760;
-  letter-spacing: -0.055em;
-  line-height: 0.98;
-}
-
-.stageCopy p {
-  margin: 0;
-  overflow: hidden;
-  color: rgba(241, 243, 233, 0.58);
-  font-size: 0.46rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .routeLegend {
   position: absolute;
-  top: 46.5%;
   right: 44px;
+  bottom: 17px;
   left: 20px;
   z-index: 3;
   display: grid;
@@ -263,16 +230,15 @@
 }
 
 .summary {
-  position: absolute;
-  right: 17px;
-  bottom: 17px;
-  left: 17px;
-  z-index: 5;
-  height: 42%;
+  position: relative;
+  z-index: 1;
+  height: auto;
   min-height: 0;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  margin: 10px 12px 12px;
   padding: 14px 15px 12px;
   border: 1px solid rgba(241, 243, 233, 0.2);
   border-top-color: rgba(241, 243, 233, 0.3);
@@ -441,7 +407,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 10px;
-  margin-top: auto;
+  margin-top: 0;
   padding-top: 8px;
   border-top: 1px solid rgba(235, 240, 225, 0.1);
   color: rgba(241, 243, 233, 0.42);

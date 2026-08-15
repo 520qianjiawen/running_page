@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } fr
 import { toCanvas } from 'html-to-image';
 import * as mapboxPolyline from '@mapbox/polyline';
 import Map, { Layer, MapRef, Source } from 'react-map-gl';
-import RunMarker from '@/components/RunMap/RunMarker';
+import type { FeatureCollection, Point } from 'geojson';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
 import { MAPBOX_TOKEN, RUN_COLOR } from '@/utils/const';
 import {
@@ -315,6 +315,32 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
       endLat: end[1],
     };
   }, [geoData]);
+  const endpointData = useMemo<FeatureCollection<Point>>(
+    () => ({
+      type: 'FeatureCollection',
+      features: endpoints
+        ? [
+            {
+              type: 'Feature',
+              properties: { kind: 'start' },
+              geometry: {
+                type: 'Point',
+                coordinates: [endpoints.startLon, endpoints.startLat],
+              },
+            },
+            {
+              type: 'Feature',
+              properties: { kind: 'end' },
+              geometry: {
+                type: 'Point',
+                coordinates: [endpoints.endLon, endpoints.endLat],
+              },
+            },
+          ]
+        : [],
+    }),
+    [endpoints]
+  );
   const routeBounds = useMemo(() => {
     let minLon = Infinity;
     let minLat = Infinity;
@@ -363,18 +389,39 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
             .map((feature) => feature.geometry.coordinates as Coordinate[])
             .filter((coords) => coords.length > 1);
           if (lines.length) {
+            const liveCanvas = mapRef.current?.getMap?.().getCanvas?.();
+            if (liveCanvas?.width && liveCanvas.height) {
+              try {
+                const preview = new Image();
+                preview.alt = '';
+                preview.className = styles.exportMap;
+                await new Promise<void>((resolve, reject) => {
+                  preview.onload = () => resolve();
+                  preview.onerror = () => reject(new Error('3D map capture failed'));
+                  preview.src = liveCanvas.toDataURL('image/png');
+                });
+                exportMapLayer = preview;
+              } catch {
+                exportMapLayer = null;
+              }
+            }
             try {
-              const staticMap = await loadStaticMapImage(
-                lines,
-                mapWrap.clientWidth * 2,
-                mapWrap.clientHeight * 2
-              );
-              if (staticMap) {
-                staticMap.alt = '';
-                staticMap.className = styles.exportMap;
-                exportMapLayer = staticMap;
+              if (!exportMapLayer) {
+                const staticMap = await loadStaticMapImage(
+                  lines,
+                  mapWrap.clientWidth * 2,
+                  mapWrap.clientHeight * 2
+                );
+                if (staticMap) {
+                  staticMap.alt = '';
+                  staticMap.className = styles.exportMap;
+                  exportMapLayer = staticMap;
+                }
               }
             } catch {
+              exportMapLayer = null;
+            }
+            if (!exportMapLayer) {
               const fallback = document.createElement('canvas');
               fallback.width = Math.max(480, mapWrap.clientWidth * 2);
               fallback.height = Math.max(480, mapWrap.clientHeight * 2);
@@ -464,6 +511,8 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
       duration: 0,
       maxZoom: 14,
     });
+    map.setPitch(58);
+    map.setBearing(-28);
   }, [routeBounds]);
 
   useEffect(() => {
@@ -506,12 +555,20 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
                     ? (routeBounds[0][1] + routeBounds[1][1]) / 2
                     : 31.79,
                   zoom: 12,
+                  pitch: 58,
+                  bearing: -28,
                   bounds: routeBounds ?? undefined,
                   fitBoundsOptions: { padding: 56, maxZoom: 14 },
                 }}
                 onLoad={fitRoute}
                 mapStyle="mapbox://styles/mapbox/dark-v11"
                 mapboxAccessToken={MAPBOX_TOKEN}
+                terrain={{ source: 'day-terrain', exaggeration: 1.55 }}
+                fog={{
+                  color: '#0b0d0c',
+                  'high-color': '#182018',
+                  'horizon-blend': 0.08,
+                }}
                 preserveDrawingBuffer={true}
                 attributionControl={false}
                 dragPan={false}
@@ -520,6 +577,13 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
                 touchZoomRotate={false}
                 style={{ width: '100%', height: '100%' }}
               >
+                <Source
+                  id="day-terrain"
+                  type="raster-dem"
+                  url="mapbox://mapbox.mapbox-terrain-dem-v1"
+                  tileSize={512}
+                  maxzoom={14}
+                />
                 <Source id="day-run" type="geojson" data={geoData}>
                   <Layer
                     id="day-run-glow"
@@ -543,7 +607,40 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
                     layout={{ 'line-join': 'round', 'line-cap': 'round' }}
                   />
                 </Source>
-                {endpoints && <RunMarker {...endpoints} />}
+                <Source id="day-run-points" type="geojson" data={endpointData}>
+                  <Layer
+                    id="day-run-points-glow"
+                    type="circle"
+                    paint={{
+                      'circle-color': [
+                        'match',
+                        ['get', 'kind'],
+                        'start',
+                        '#d6ff64',
+                        '#ff6b5f',
+                      ],
+                      'circle-radius': 9,
+                      'circle-blur': 0.75,
+                      'circle-opacity': 0.55,
+                    }}
+                  />
+                  <Layer
+                    id="day-run-points"
+                    type="circle"
+                    paint={{
+                      'circle-color': [
+                        'match',
+                        ['get', 'kind'],
+                        'start',
+                        '#d6ff64',
+                        '#ff6b5f',
+                      ],
+                      'circle-radius': 4.5,
+                      'circle-stroke-color': '#f1f3e9',
+                      'circle-stroke-width': 1.4,
+                    }}
+                  />
+                </Source>
               </Map>
             ) : (
               <div className={styles.mapEmpty}>这条记录没有轨迹</div>
@@ -567,18 +664,8 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
             <span className={styles.date}>{stats.prettyDate}</span>
           </header>
 
-          <div className={styles.stageCopy}>
-            <span>DAILY RUN · {stats.weekday}</span>
-            <h2>今天，跑了<br />{stats.km.toFixed(2)} 公里</h2>
-            <p>
-              {[stats.location || '跑步轨迹', stats.start || '', temperature !== null ? `${Math.round(temperature)}°C` : '']
-                .filter(Boolean)
-                .join(' · ')}
-            </p>
-          </div>
-
           <div className={styles.routeLegend} aria-hidden="true">
-            <span>ROUTE TRACE</span>
+            <span>3D ROUTE / TERRAIN</span>
             <i />
             <small>{String(stats.count).padStart(2, '0')} RUN</small>
           </div>
@@ -605,7 +692,7 @@ const DaySharePoster = ({ date, runs, onClose }: DaySharePosterProps) => {
 
           <div className={styles.grid}>
             <div><em>平均配速</em><b>{stats.pace}</b></div>
-            <div><em>移动时间</em><b>{formatClock(stats.seconds)}</b></div>
+            <div><em>运动时间</em><b>{formatClock(stats.seconds)}</b></div>
             <div><em>平均心率</em><b>{stats.heartrate ? `${stats.heartrate} bpm` : '未记录'}</b></div>
             <div><em>累计爬升</em><b>{stats.elevation ? `${Math.round(stats.elevation)} m` : '未记录'}</b></div>
             <div><em>环境气温</em><b>{temperature !== null ? `${Math.round(temperature)}°C` : '未记录'}</b></div>

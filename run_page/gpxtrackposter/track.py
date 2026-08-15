@@ -263,6 +263,9 @@ class Track:
         self.average_heartrate = (
             message["avg_heart_rate"] if "avg_heart_rate" in message else None
         )
+        # COROS and Garmin FIT session messages expose cumulative climbing as
+        # total_ascent. Persist it as elevation_gain for the web UI.
+        self.elevation_gain = message.get("total_ascent")
         if message["sport"].lower() == "running":
             self.type = "Run"
         else:
@@ -282,9 +285,7 @@ class Track:
             seconds=message["total_elapsed_time"]
         )
         self.moving_dict["average_speed"] = (
-            message["enhanced_avg_speed"]
-            if message["enhanced_avg_speed"]
-            else message["avg_speed"]
+            message.get("enhanced_avg_speed") or message.get("avg_speed") or 0
         )
         self.best_1k = self._best_1k_seconds(fit.get("record_mesgs") or [])
         for record in fit["record_mesgs"]:
